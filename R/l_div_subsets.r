@@ -1,10 +1,9 @@
 # Define the modified l_diverse function
 isLdiverse_temp = function(df, quasi_id_cols, sensitive_cols, l) {
   # Load the required libraries
-  require(dplyr)
 
   #Silence the summary function message
-  options(dplyr.summarise.inform = FALSE)
+  #options(dplyr.summarise.inform = FALSE)
 
   # Group the data by the quasi-identifier and sensitive columns
   grouped_df = df[, c(quasi_id_cols, sensitive_cols)] %>% group_by(across(all_of(quasi_id_cols)))
@@ -20,7 +19,6 @@ isLdiverse_temp = function(df, quasi_id_cols, sensitive_cols, l) {
 
 isLdiverse = function(df, quasi_id_cols, sensitive_cols, l) {
   # Load the required libraries
-  #require(dplyr)
 
   #Silence the summary function message
   options(dplyr.summarise.inform = FALSE)
@@ -245,7 +243,7 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
 
   # One-hot encode the combined data frame
   dummies_both <- caret::dummyVars(" ~ .", data = both_sets)
-  as_numerical_both <- predict(dummies_both, newdata = both_sets)
+  as_numerical_both <- stats::predict(dummies_both, newdata = both_sets)
 
   #print("checkpoint")
 
@@ -259,7 +257,7 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
   #})
 
   ### NEW ###
-  normalized_all = as.data.table(scale(as_numerical_both))
+  normalized_all = data.table::as.data.table(scale(as_numerical_both))
   #print(normalized_all)
   #normalized_all <- normalized_all[,which(unlist(lapply(normalized_all, function(x)!all(is.na(x))))),with=F]
   #print(normalized_all)
@@ -281,5 +279,5 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
   #print(str(mean_otherSubset))
 
   # Calculate vector distance using Euclidean distance
-  return(dist(rbind(mean_subset, mean_otherSubset)))
+  return(stats::dist(rbind(mean_subset, mean_otherSubset)))
 }

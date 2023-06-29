@@ -12,4 +12,9 @@ LazyData: true
 Imports: 
     caret,
     data.table,
-    dplyr
+    dplyr,
+    magrittr (>= 2.0.3),
+    R.utils (>= 2.12.2),
+    stats (>= 4.3.1),
+    tidyselect (>= 1.2.0)
+RoxygenNote: 7.2.3

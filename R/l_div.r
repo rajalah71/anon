@@ -1,10 +1,10 @@
 # Define the modified l_diverse function
 is_l_diverse = function(df, quasi_id_cols, sensitive_cols, l) {
   # Load the required libraries
-  suppressMessages(library(dplyr))
+  #suppressMessages(library(dplyr))
 
   #Silence the summary function message
-  options(dplyr.summarise.inform = FALSE)
+  #options(dplyr.summarise.inform = FALSE)
 
   # Group the data by the quasi-identifier and sensitive columns
   grouped_df = df[, c(quasi_id_cols, sensitive_cols)] %>% group_by(across(all_of(quasi_id_cols)))

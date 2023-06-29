@@ -1,10 +1,10 @@
 # Define the modified l_diverse function
 is_k_anonymous = function(df, quasi_id_cols, k) {
   # Load the required libraries
-  suppressMessages(library(dplyr))
+  #suppressMessages(library(dplyr))
 
   #Silence the summary function message
-  options(dplyr.summarise.inform = FALSE)
+  #options(dplyr.summarise.inform = FALSE)
 
   # Group the data by the quasi-identifiers
   grouped_df = df %>% group_by(across(all_of(quasi_id_cols)))
@@ -47,3 +47,5 @@ make_k_anonymous <- function(df, quasi_id_cols, fun_list, k) {
 
   stop("Data frame could not be k-anonymous with given functions!\n  Try to use coarser functions!")
 }
+
+
