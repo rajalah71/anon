@@ -4,7 +4,7 @@
 \alias{quantile_bands}
 \title{Divide a column into quantile bands}
 \usage{
-quantile_bands(column, n_bands, returnmean = FALSE, inclusive_tails = TRUE)
+quantile_bands(column, n_bands = 1, returnmean = FALSE, inclusive_tails = TRUE)
 }
 \arguments{
 \item{column}{A numeric vector representing the column to be divided into bands.}

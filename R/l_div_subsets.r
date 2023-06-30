@@ -262,6 +262,7 @@ makeLdiverse <- function(data, quasiIdentifiers, sensitiveAttributes, diversityF
 #'   data.frame(Q1 = "B", Q2 = "X")
 #' )
 #' find_nearest_subset(subset, subsets, c("Q1", "Q2"))
+#' @export
 findNearestSubset <- function(subset, subsets, quasiIdentifiers) {
   nearestSubsetIndex <- 0  # Initialize the index of the nearest subset
   minDistance <- Inf  # Initialize the minimum distance to infinity
@@ -307,8 +308,6 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
   subset <- rbindlist(subset)
   otherSubset <- rbindlist(otherSubset)
 
-  #print("check1")
-
   # Drop non-quasi-identifiers from the subset
   subset <- subset[, ..quasiIdentifiers]
   n_sub <- nrow(subset)
@@ -320,24 +319,16 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
   # Combine the partial data frames into one
   both_sets <- rbind(subset, otherSubset)
 
-  #print(both_sets)
-
   # Check the levels of variables
   levels_count <- lapply(both_sets, function(x) length(unique(x)))
-
-  #print(levels_count)
 
   # Remove variables with only one level
   col_select <- both_sets[, levels_count > 1, drop=FALSE]
   both_sets <- both_sets[, ..col_select]
 
-  #print(both_sets)
-
   # One-hot encode the combined data frame
   dummies_both <- dummyVars(" ~ .", data = both_sets)
   as_numerical_both <- predict(dummies_both, newdata = both_sets)
-
-  #print("checkpoint")
 
   # Normalize
   normalized_all = as.data.table(scale(as_numerical_both))
@@ -345,32 +336,11 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
   # Divide the normalized data frame into the original parts
   subset_normalized <- normalized_all[1:n_sub, ,drop = FALSE]
   otherSubset_normalized <- normalized_all[-(1:n_sub), ,drop = FALSE]
-  #print("checkpoint2")
 
   # Take the colMeans
   mean_subset <- colMeans(subset_normalized)
   mean_otherSubset <- colMeans(otherSubset_normalized)
 
-  #print("check2")
-
   # Calculate vector distance using Euclidean distance
   return(dist(rbind(mean_subset, mean_otherSubset)))
 }
-
-# ------------------
-
-data <- data.frame(
-  age = c(35, 35, 22, 23),
-  gender = c("Male", "Male", "Male", "Female"),
-  zip_code = c(98101, 98101, 98102, 98102),
-  disease = c("Flu", "Cancer", "Flu", "Cancer")
-)
-
-
-fun_list_4 <- list(
-  age = function(age) quantile_bands(age, 1),
-  gender = function(gender) combine_lowest_classes(gender, 1),
-  zip_code = function(zip_code) quantile_bands(zip_code, 1)
-)
-
-#makeLdiverse((data), c("age", "zip_code", "gender"), "disease", fun_list_4, 2)
