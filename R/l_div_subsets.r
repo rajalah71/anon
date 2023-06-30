@@ -39,7 +39,7 @@ isLdiverse_temp = function(df, quasi_id_cols, sensitive_cols, l) {
 #'   S = c(1, 2, 3, 4)
 #' )
 #' is_ldiverse(df, c("Q1", "Q2"), c("S"), 2)
-#'
+#' @export
 isLdiverse = function(df, quasi_id_cols, sensitive_cols, l) {
 
   # Iterate over sensitive columns, considering one of them as a sensitive attribute and the rest as quasi identifiers

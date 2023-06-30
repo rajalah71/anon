@@ -28,5 +28,4 @@ df <- data.frame(
   S = c(1, 2, 3, 4)
 )
 is_ldiverse(df, c("Q1", "Q2"), c("S"), 2)
-
 }

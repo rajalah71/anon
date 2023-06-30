@@ -14,11 +14,12 @@
 #' @examples
 #' data <- c(10, 20, 15, 25, 30)
 #' bands <- quantile_bands(data, 3, returnmean = FALSE, inclusive_tails = TRUE)
+#' @export
 quantile_bands = function(column, n_bands, returnmean = FALSE, inclusive_tails = TRUE) {
   n_data_points <- length(column)
 
   # Divide the column support to n_bands such that each band holds equal amount of probability mass or samples
-  quantiles = stats::quantile(column, probs = seq(0, 1, length.out = n_bands + 1))
+  quantiles = quantile(column, probs = seq(0, 1, length.out = n_bands + 1))
 
   # Check if the quantiles are unique. If the quantiles are not unique:
   if (length(unique(quantiles)) < n_bands + 1) {
