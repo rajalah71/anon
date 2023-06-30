@@ -20,7 +20,10 @@ A numeric value representing the diversity distance between the two subsets.
 This function calculates the diversity distance between two subsets based on the given quasi-identifiers.
 }
 \examples{
-data1 <- data.frame(ID = 1:5, Age = c(25, 35, 40, 28, 32), Gender = c("M", "F", "F", "M", "F"))
-data2 <- data.frame(ID = 6:10, Age = c(28, 38, 42, 31, 29), Gender = c("M", "F", "F", "F", "M"))
+\donttest{
+data1 <- list(data.frame(ID = 1:5, Age = c(25, 35, 40, 28, 32), Gender = c("M", "F", "F", "M", "F")))
+data2 <- list(data.frame(ID = 6:10, Age = c(28, 38, 42, 31, 29), Gender = c("M", "F", "F", "F", "M")))
 diversity_distance <- matrix_distance(data1, data2, c("Age", "Gender"))
+}
+
 }

@@ -239,6 +239,7 @@ makeLdiverse <- function(data, quasiIdentifiers, sensitiveAttributes, diversityF
   }
 }
 
+
 #---------------------
 
 #' Find the index of the nearest subset
@@ -251,18 +252,21 @@ makeLdiverse <- function(data, quasiIdentifiers, sensitiveAttributes, diversityF
 #'
 #' @return The index of the nearest subset in the list.
 #'
+#' @import caret
+#'
+#'
 #' @examples
-#' subset <- data.frame(
+#' subset <- list(data.frame(
 #'   Q1 = c("A", "B"),
 #'   Q2 = c("X", "Y")
-#' )
+#' ))
 #' subsets <- list(
 #'   data.frame(Q1 = "A", Q2 = "X"),
 #'   data.frame(Q1 = "A", Q2 = "Y"),
 #'   data.frame(Q1 = "B", Q2 = "X")
 #' )
-#' find_nearest_subset(subset, subsets, c("Q1", "Q2"))
-#' @export
+#' findNearestSubset(subset, subsets, c("Q1", "Q2"))
+#'
 findNearestSubset <- function(subset, subsets, quasiIdentifiers) {
   nearestSubsetIndex <- 0  # Initialize the index of the nearest subset
   minDistance <- Inf  # Initialize the minimum distance to infinity
@@ -281,7 +285,7 @@ findNearestSubset <- function(subset, subsets, quasiIdentifiers) {
   return(nearestSubsetIndex)  # Return the index of the nearest subset
 }
 
-#-------------------
+#----------------
 
 # Function to calculate the distance between mean vectors of two subsets (must be inputed as lits)
 #' Calculate the diversity distance between two subsets based on the given quasi-identifiers
@@ -295,13 +299,17 @@ findNearestSubset <- function(subset, subsets, quasiIdentifiers) {
 #' @importFrom data.table rbindlist as.data.table
 #' @importFrom stats dist predict
 #' @importFrom caret dummyVars contr.ltfr
+#' @import caret
 #'
 #' @return A numeric value representing the diversity distance between the two subsets.
 #'
 #' @examples
-#' data1 <- data.frame(ID = 1:5, Age = c(25, 35, 40, 28, 32), Gender = c("M", "F", "F", "M", "F"))
-#' data2 <- data.frame(ID = 6:10, Age = c(28, 38, 42, 31, 29), Gender = c("M", "F", "F", "F", "M"))
+#' \donttest{
+#' data1 <- list(data.frame(ID = 1:5, Age = c(25, 35, 40, 28, 32), Gender = c("M", "F", "F", "M", "F")))
+#' data2 <- list(data.frame(ID = 6:10, Age = c(28, 38, 42, 31, 29), Gender = c("M", "F", "F", "F", "M")))
 #' diversity_distance <- matrix_distance(data1, data2, c("Age", "Gender"))
+#' }
+#'
 matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
 
   # Convert subset and otherSubset to data frames if they are lists
@@ -344,3 +352,6 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
   # Calculate vector distance using Euclidean distance
   return(dist(rbind(mean_subset, mean_otherSubset)))
 }
+
+
+
