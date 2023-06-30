@@ -17,11 +17,30 @@ isLdiverse_temp = function(df, quasi_id_cols, sensitive_cols, l) {
   all(count_df[, sensitive_cols] >= l)
 }
 
-isLdiverse = function(df, quasi_id_cols, sensitive_cols, l) {
-  # Load the required libraries
+#------------------
 
-  #Silence the summary function message
-  options(dplyr.summarise.inform = FALSE)
+#' Check if a DataFrame is l-diverse
+#'
+#' This function checks if a DataFrame is l-diverse based on the specified quasi-identifier columns, sensitive columns, and l value.
+#'
+#' @param df The DataFrame to be checked.
+#' @param quasi_id_cols A character vector specifying the quasi-identifier columns.
+#' @param sensitive_cols A character vector specifying the sensitive columns.
+#' @param l The minimum number of rows required in each group.
+#'
+#' @return A logical value indicating whether the DataFrame is l-diverse.
+#'
+#' @importFrom dplyr group_by summarise n_distinct across all_of
+#'
+#' @examples
+#' df <- data.frame(
+#'   Q1 = c("A", "A", "B", "B"),
+#'   Q2 = c("X", "Y", "X", "Y"),
+#'   S = c(1, 2, 3, 4)
+#' )
+#' is_ldiverse(df, c("Q1", "Q2"), c("S"), 2)
+#'
+isLdiverse = function(df, quasi_id_cols, sensitive_cols, l) {
 
   # Iterate over sensitive columns, considering one of them as a sensitive attribute and the rest as quasi identifiers
   for (i in seq_along(sensitive_cols)){
@@ -51,13 +70,44 @@ isLdiverse = function(df, quasi_id_cols, sensitive_cols, l) {
 
 }
 
+#--------------
 
 
-# This function tries to make a given dataset (dataframe) into an l-diverse version of it given a set of quasi-identifiers (a vector of corresponding column names)
-# and a sensitive attribute (column name as string) and a
-# list of diversity functions (list with function names exactly the same as the column they are supposed to operate on) and an
-# integer l which determines how l-diverse the dataset will be. The greater the l, the greater the anononymity of the dataset and lower the utility of it.
 
+#' Make a dataset l-diverse by applying diversity functions
+#'
+#' This function takes a dataset and applies a set of diversity functions to the specified
+#' quasi-identifier columns in order to achieve l-diversity with respect to the sensitive attributes.
+#' It checks if the dataset is already l-diverse and returns the dataset as is in that case.
+#' If not, it iteratively combines subsets of the dataset and applies the diversity functions
+#' until the desired level of l-diversity is achieved or it is not possible with the given functions.
+#'
+#' @param data The input dataset.
+#' @param quasiIdentifiers A character vector specifying the names of the quasi-identifier columns.
+#' @param sensitiveAttributes A character vector specifying the names of the sensitive attributes.
+#' @param diversityFunctions A named list of functions corresponding to the quasi-identifier columns.
+#'   Each function should take a vector as input and return a modified vector with the same length.
+#' @param l The desired minimum number of distinct values for each sensitive attribute within each group.
+#'
+#'
+#' @return A dataset that is l-diverse with respect to the specified quasi-identifier columns and sensitive attributes,
+#'   or an error is thrown if the desired level of l-diversity cannot be achieved.
+#'
+#' @examples
+#' data <- data.frame(
+#'   age = c(25, 30, 35, 40, 45),
+#'   gender = c("M", "M", "F", "F", "M"),
+#'   disease = c("A", "A", "B", "C", "C")
+#' )
+#'
+#' # Define functions for generalizing age and gender
+#' age_fun <- function(x) floor(x / 10) * 10
+#' gender_fun <- function(x) "*"
+#'
+#' # Apply makeLdiverse function
+#' ldiverse_data <- makeLdiverse(data, c("age", "gender"), "disease", list(age = age_fun, gender = gender_fun), 2)
+#'
+#' @export
 makeLdiverse <- function(data, quasiIdentifiers, sensitiveAttributes, diversityFunctions, l) {
 
   # For runtime
@@ -75,7 +125,7 @@ makeLdiverse <- function(data, quasiIdentifiers, sensitiveAttributes, diversityF
   }
 
   # Divide the dataset into a list of subsets based on quasi identifiers
-  subsets <- base::split(data, data[, quasiIdentifiers], drop = TRUE)
+  subsets <- split(data, data[, quasiIdentifiers], drop = TRUE)
 
   # Iteration counter
   print_counter = 0
@@ -191,7 +241,27 @@ makeLdiverse <- function(data, quasiIdentifiers, sensitiveAttributes, diversityF
 
 #---------------------
 
-# Takes two lists and the quasi ids as parameters
+#' Find the index of the nearest subset
+#'
+#' This function finds the index of the nearest subset to a given subset among a list of subsets, based on the specified quasi-identifier columns.
+#'
+#' @param subset The subset for which to find the nearest subset.
+#' @param subsets A list of subsets to compare with the given subset.
+#' @param quasiIdentifiers A character vector specifying the quasi-identifier columns.
+#'
+#' @return The index of the nearest subset in the list.
+#'
+#' @examples
+#' subset <- data.frame(
+#'   Q1 = c("A", "B"),
+#'   Q2 = c("X", "Y")
+#' )
+#' subsets <- list(
+#'   data.frame(Q1 = "A", Q2 = "X"),
+#'   data.frame(Q1 = "A", Q2 = "Y"),
+#'   data.frame(Q1 = "B", Q2 = "X")
+#' )
+#' find_nearest_subset(subset, subsets, c("Q1", "Q2"))
 findNearestSubset <- function(subset, subsets, quasiIdentifiers) {
   nearestSubsetIndex <- 0  # Initialize the index of the nearest subset
   minDistance <- Inf  # Initialize the minimum distance to infinity
@@ -213,71 +283,94 @@ findNearestSubset <- function(subset, subsets, quasiIdentifiers) {
 #-------------------
 
 # Function to calculate the distance between mean vectors of two subsets (must be inputed as lits)
+#' Calculate the diversity distance between two subsets based on the given quasi-identifiers
+#'
+#' This function calculates the diversity distance between two subsets based on the given quasi-identifiers.
+#'
+#' @param subset A data frame representing one subset of the data.
+#' @param otherSubset A data frame representing another subset of the data.
+#' @param quasiIdentifiers A character vector containing the names of the columns that serve as quasi-identifiers.
+#'
+#' @importFrom data.table rbindlist as.data.table
+#' @importFrom stats dist predict
+#' @importFrom caret dummyVars contr.ltfr
+#'
+#' @return A numeric value representing the diversity distance between the two subsets.
+#'
+#' @examples
+#' data1 <- data.frame(ID = 1:5, Age = c(25, 35, 40, 28, 32), Gender = c("M", "F", "F", "M", "F"))
+#' data2 <- data.frame(ID = 6:10, Age = c(28, 38, 42, 31, 29), Gender = c("M", "F", "F", "F", "M"))
+#' diversity_distance <- matrix_distance(data1, data2, c("Age", "Gender"))
 matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
 
-  # Package needed for onehot encoding
-  #require(caret)
-
   # Convert subset and otherSubset to data frames if they are lists
+  subset <- rbindlist(subset)
+  otherSubset <- rbindlist(otherSubset)
 
-  subset <- data.table::rbindlist(subset)
-
-  otherSubset <- data.table::rbindlist(otherSubset)
+  #print("check1")
 
   # Drop non-quasi-identifiers from the subset
-  subset <- subset[, quasiIdentifiers, drop=FALSE]
+  subset <- subset[, ..quasiIdentifiers]
   n_sub <- nrow(subset)
 
   # Drop non-quasi-identifiers from the other subset
-  otherSubset <- otherSubset[, quasiIdentifiers, drop=FALSE]
+  otherSubset <- otherSubset[, ..quasiIdentifiers]
   n_other <- nrow(otherSubset)
 
   # Combine the partial data frames into one
   both_sets <- rbind(subset, otherSubset)
 
+  #print(both_sets)
+
   # Check the levels of variables
   levels_count <- lapply(both_sets, function(x) length(unique(x)))
 
+  #print(levels_count)
+
   # Remove variables with only one level
-  both_sets <- both_sets[, levels_count > 1, drop=FALSE]
+  col_select <- both_sets[, levels_count > 1, drop=FALSE]
+  both_sets <- both_sets[, ..col_select]
+
+  #print(both_sets)
 
   # One-hot encode the combined data frame
-  dummies_both <- caret::dummyVars(" ~ .", data = both_sets)
-  as_numerical_both <- stats::predict(dummies_both, newdata = both_sets)
+  dummies_both <- dummyVars(" ~ .", data = both_sets)
+  as_numerical_both <- predict(dummies_both, newdata = both_sets)
 
   #print("checkpoint")
 
-  # Normalize the data frame
-  #normalized_all <- apply(as_numerical_both, 2, function(x) {
-   # if (sd(x) != 0) {
-    #  (x - mean(x)) / sd(x)
-    #} else {
-    #  x
-    #}
-  #})
-
-  ### NEW ###
-  normalized_all = data.table::as.data.table(scale(as_numerical_both))
-  #print(normalized_all)
-  #normalized_all <- normalized_all[,which(unlist(lapply(normalized_all, function(x)!all(is.na(x))))),with=F]
-  #print(normalized_all)
-  #print("checkpoint1.5")
-  ### NEW ###
+  # Normalize
+  normalized_all = as.data.table(scale(as_numerical_both))
 
   # Divide the normalized data frame into the original parts
   subset_normalized <- normalized_all[1:n_sub, ,drop = FALSE]
   otherSubset_normalized <- normalized_all[-(1:n_sub), ,drop = FALSE]
   #print("checkpoint2")
 
+  # Take the colMeans
   mean_subset <- colMeans(subset_normalized)
-
   mean_otherSubset <- colMeans(otherSubset_normalized)
 
-
-  #print(str(mean_subset))
-
-  #print(str(mean_otherSubset))
+  #print("check2")
 
   # Calculate vector distance using Euclidean distance
-  return(stats::dist(rbind(mean_subset, mean_otherSubset)))
+  return(dist(rbind(mean_subset, mean_otherSubset)))
 }
+
+# ------------------
+
+data <- data.frame(
+  age = c(35, 35, 22, 23),
+  gender = c("Male", "Male", "Male", "Female"),
+  zip_code = c(98101, 98101, 98102, 98102),
+  disease = c("Flu", "Cancer", "Flu", "Cancer")
+)
+
+
+fun_list_4 <- list(
+  age = function(age) quantile_bands(age, 1),
+  gender = function(gender) combine_lowest_classes(gender, 1),
+  zip_code = function(zip_code) quantile_bands(zip_code, 1)
+)
+
+#makeLdiverse((data), c("age", "zip_code", "gender"), "disease", fun_list_4, 2)

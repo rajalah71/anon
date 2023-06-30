@@ -1,3 +1,19 @@
+#' Divide a column into quantile bands
+#'
+#' This function divides a column into quantile bands based on the specified number of bands.
+#'
+#' @param column A numeric vector representing the column to be divided into bands.
+#' @param n_bands An integer specifying the number of bands to create.
+#' @param returnmean A logical value indicating whether to return the mean value of each band instead of the band itself.
+#' @param inclusive_tails A logical value indicating whether to include the lowest and highest values in the first and last bands respectively.
+#'
+#' @importFrom stats quantile
+#'
+#' @return A character vector representing the quantile bands for each value in the column.
+#'
+#' @examples
+#' data <- c(10, 20, 15, 25, 30)
+#' bands <- quantile_bands(data, 3, returnmean = FALSE, inclusive_tails = TRUE)
 quantile_bands = function(column, n_bands, returnmean = FALSE, inclusive_tails = TRUE) {
   n_data_points <- length(column)
 
