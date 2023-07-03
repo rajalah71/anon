@@ -252,9 +252,6 @@ makeLdiverse <- function(data, quasiIdentifiers, sensitiveAttributes, diversityF
 #'
 #' @return The index of the nearest subset in the list.
 #'
-#' @import caret
-#'
-#'
 #' @examples
 #' subset <- list(data.frame(
 #'   Q1 = c("A", "B"),
@@ -301,7 +298,7 @@ findNearestSubset <- function(subset, subsets, quasiIdentifiers) {
 #' @param quasiIdentifiers A character vector containing the names of the columns that serve as quasi-identifiers.
 #'
 #' @importFrom data.table rbindlist as.data.table
-#' @importFrom stats dist predict
+#' @importFrom stats dist
 #' @importFrom scorecard one_hot
 #'
 #' @return A numeric value representing the diversity distance between the two subsets.
@@ -319,10 +316,10 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
   subset <- rbindlist(subset)
   otherSubset <- rbindlist(otherSubset)
 
-  print("subset")
-  print(subset)
-  print("otherSubset")
-  print(otherSubset)
+  # print("subset")
+  # print(subset)
+  # print("otherSubset")
+  # print(otherSubset)
 
   # Drop non-quasi-identifiers from the subset
   subset <- subset[, ..quasiIdentifiers]
@@ -332,15 +329,15 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
   otherSubset <- otherSubset[, ..quasiIdentifiers]
   n_other <- nrow(otherSubset)
 
-  print("subset after drop")
-  print(subset)
-  print("otherSubset after drop")
-  print(otherSubset)
+  # print("subset after drop")
+  # print(subset)
+  # print("otherSubset after drop")
+  # print(otherSubset)
 
   # Combine the partial data frames into one
   both_sets <- rbind(subset, otherSubset)
-  print("both sets")
-  print(both_sets)
+  # print("both sets")
+  # print(both_sets)
 
 
   # Check the levels of variables
@@ -349,12 +346,14 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
 
   # Remove variables with only one level
   col_select <- both_sets[, levels_count > 1, drop=FALSE]
-  print("colselect")
-  print(col_select)
+  # print("colselect")
+  # print(col_select)
   both_sets <- both_sets[, ..col_select]
 
-  print("both sets after drop")
-  print(both_sets)
+  # print("both sets after drop")
+  # print(both_sets)
+
+  # If no columns are present anymore, the dataframes are indentical
   if(ncol(both_sets) == 0){
     return(0)
   }
@@ -366,14 +365,14 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
 
   as_numerical_both = one_hot(both_sets)
 
-  print("as numerical both")
-  print(as_numerical_both)
+  # print("as numerical both")
+  # print(as_numerical_both)
 
 
   # Normalize
   normalized_all = as.data.table(scale(as_numerical_both))
-  print("normalized all")
-  print(normalized_all)
+  # print("normalized all")
+  # print(normalized_all)
 
   # Divide the normalized data frame into the original parts
   subset_normalized <- normalized_all[1:n_sub, ,drop = FALSE]
@@ -382,15 +381,14 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
   # Take the colMeans
   mean_subset <- colMeans(subset_normalized)
   mean_otherSubset <- colMeans(otherSubset_normalized)
-  print("meansubs")
-  print(mean_subset)
-  print("meanotherS")
-  print(mean_otherSubset)
+  # print("meansubs")
+  # print(mean_subset)
+  # print("meanotherS")
+  # print(mean_otherSubset)
 
   # Calculate vector distance using Euclidean distance
-  distance = (dist(rbind(mean_subset, mean_otherSubset)))
-  print(c("dist", distance))
-  return(distance)
+  return(dist(rbind(mean_subset, mean_otherSubset)))
+
 }
 
 
