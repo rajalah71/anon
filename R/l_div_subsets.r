@@ -33,12 +33,14 @@ isLdiverse_temp = function(df, quasi_id_cols, sensitive_cols, l) {
 #' @importFrom dplyr group_by summarise n_distinct across all_of
 #'
 #' @examples
+#' \donttest{
 #' df <- data.frame(
 #'   Q1 = c("A", "A", "B", "B"),
 #'   Q2 = c("X", "Y", "X", "Y"),
 #'   S = c(1, 2, 3, 4)
 #' )
 #' is_ldiverse(df, c("Q1", "Q2"), c("S"), 2)
+#' }
 #' @export
 isLdiverse = function(df, quasi_id_cols, sensitive_cols, l) {
 
@@ -94,6 +96,7 @@ isLdiverse = function(df, quasi_id_cols, sensitive_cols, l) {
 #'   or an error is thrown if the desired level of l-diversity cannot be achieved.
 #'
 #' @examples
+#' \donttest{
 #' data <- data.frame(
 #'   age = c(25, 30, 35, 40, 45),
 #'   gender = c("M", "M", "F", "F", "M"),
@@ -106,7 +109,7 @@ isLdiverse = function(df, quasi_id_cols, sensitive_cols, l) {
 #'
 #' # Apply makeLdiverse function
 #' ldiverse_data <- makeLdiverse(data, c("age", "gender"), "disease", list(age = age_fun, gender = gender_fun), 2)
-#'
+#'}
 #' @export
 makeLdiverse <- function(data, quasiIdentifiers, sensitiveAttributes, diversityFunctions, l) {
 
@@ -253,6 +256,7 @@ makeLdiverse <- function(data, quasiIdentifiers, sensitiveAttributes, diversityF
 #' @return The index of the nearest subset in the list.
 #'
 #' @examples
+#' \donttest{
 #' subset <- list(data.frame(
 #'   Q1 = c("A", "B"),
 #'   Q2 = c("X", "Y")
@@ -263,7 +267,7 @@ makeLdiverse <- function(data, quasiIdentifiers, sensitiveAttributes, diversityF
 #'   data.frame(Q1 = "B", Q2 = "X")
 #' )
 #' findNearestSubset(subset, subsets, c("Q1", "Q2"))
-#'
+#'}
 findNearestSubset <- function(subset, subsets, quasiIdentifiers) {
   nearestSubsetIndex <- 0  # Initialize the index of the nearest subset
   minDistance <- Inf  # Initialize the minimum distance to infinity

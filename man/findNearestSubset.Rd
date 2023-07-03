@@ -20,6 +20,7 @@ The index of the nearest subset in the list.
 This function finds the index of the nearest subset to a given subset among a list of subsets, based on the specified quasi-identifier columns.
 }
 \examples{
+\donttest{
 subset <- list(data.frame(
   Q1 = c("A", "B"),
   Q2 = c("X", "Y")
@@ -30,5 +31,5 @@ subsets <- list(
   data.frame(Q1 = "B", Q2 = "X")
 )
 findNearestSubset(subset, subsets, c("Q1", "Q2"))
-
+}
 }

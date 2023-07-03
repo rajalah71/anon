@@ -80,10 +80,10 @@ is_l_diverse = function(df, quasi_id_cols, sensitive_cols, l) {
 #' gender_fun <- function(x) "*"
 #'
 #' # Apply make_l_diverse function
-#' l_diverse_df <- make_l_diverse(df, c("age", "gender"), "disease", list(age = age_fun, gender = gender_fun), 2)
+#' l_diverse_df <- make_l_diverse_columnwise(df, c("age", "gender"), "disease", list(age = age_fun, gender = gender_fun), 2)
 #'
 #' @export
-make_l_diverse <- function(df, quasi_id_cols, sensitive_cols, fun_list, l) {
+make_l_diverse_columnwise <- function(df, quasi_id_cols, sensitive_cols, fun_list, l) {
 
   # Check if the data is already l-diverse
   if (is_l_diverse(df, quasi_id_cols, sensitive_cols, l)) {

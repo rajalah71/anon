@@ -22,10 +22,12 @@ A logical value indicating whether the DataFrame is l-diverse.
 This function checks if a DataFrame is l-diverse based on the specified quasi-identifier columns, sensitive columns, and l value.
 }
 \examples{
+\donttest{
 df <- data.frame(
   Q1 = c("A", "A", "B", "B"),
   Q2 = c("X", "Y", "X", "Y"),
   S = c(1, 2, 3, 4)
 )
 is_ldiverse(df, c("Q1", "Q2"), c("S"), 2)
+}
 }

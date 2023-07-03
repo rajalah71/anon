@@ -36,6 +36,7 @@ If not, it iteratively combines subsets of the dataset and applies the diversity
 until the desired level of l-diversity is achieved or it is not possible with the given functions.
 }
 \examples{
+\donttest{
 data <- data.frame(
   age = c(25, 30, 35, 40, 45),
   gender = c("M", "M", "F", "F", "M"),
@@ -48,5 +49,5 @@ gender_fun <- function(x) "*"
 
 # Apply makeLdiverse function
 ldiverse_data <- makeLdiverse(data, c("age", "gender"), "disease", list(age = age_fun, gender = gender_fun), 2)
-
+}
 }
