@@ -317,6 +317,11 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
   subset <- rbindlist(subset)
   otherSubset <- rbindlist(otherSubset)
 
+  # print("subset")
+  # print(subset)
+  # print("otherSubset")
+  # print(otherSubset)
+
   # Drop non-quasi-identifiers from the subset
   subset <- subset[, ..quasiIdentifiers]
   n_sub <- nrow(subset)
@@ -325,27 +330,46 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
   otherSubset <- otherSubset[, ..quasiIdentifiers]
   n_other <- nrow(otherSubset)
 
+  # print("subset after drop")
+  # print(subset)
+  # print("otherSubset after drop")
+  # print(otherSubset)
+
   # Combine the partial data frames into one
   both_sets <- rbind(subset, otherSubset)
-  print("check1")
+  #print("both sets")
+  #print(both_sets)
+
 
   # Check the levels of variables
   levels_count <- lapply(both_sets, function(x) length(unique(x)))
-  print("check2")
+
 
   # Remove variables with only one level
   col_select <- both_sets[, levels_count > 1, drop=FALSE]
+  #print("colselect")
+  #print(col_select)
   both_sets <- both_sets[, ..col_select]
-  print("check3")
+
+  #print("both sets after drop")
+  #print(both_sets)
+  if(ncol(both_sets) == 0){
+    return(0)
+  }
 
   # One-hot encode the combined data frame
   dummies_both <- dummyVars(" ~ .", data = both_sets)
-  print("check4")
+  #print("between onehot")
   as_numerical_both <- predict(dummies_both, newdata = both_sets)
-  print("check5")
+
+  #print("as numerical both")
+  #print(as_numerical_both)
+
 
   # Normalize
   normalized_all = as.data.table(scale(as_numerical_both))
+  #print("normalized all")
+  #print(normalized_all)
 
   # Divide the normalized data frame into the original parts
   subset_normalized <- normalized_all[1:n_sub, ,drop = FALSE]
@@ -354,9 +378,15 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
   # Take the colMeans
   mean_subset <- colMeans(subset_normalized)
   mean_otherSubset <- colMeans(otherSubset_normalized)
+  # print("meansubs")
+  # print(mean_subset)
+  # print("meanotherS")
+  # print(mean_otherSubset)
 
   # Calculate vector distance using Euclidean distance
-  return(dist(rbind(mean_subset, mean_otherSubset)))
+  distance = (dist(rbind(mean_subset, mean_otherSubset)))
+  #print("dist")
+  return(distance)
 }
 
 
