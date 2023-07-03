@@ -360,10 +360,10 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
   # One-hot encode the combined data frame
   dummies_both <- dummyVars(" ~ .", data = both_sets)
   print("between onehot")
-  as_numerical_both <- predict(dummies_both, newdata = both_sets)
+  as_numerical_both <- stats::predict(dummies_both, newdata = both_sets)
 
-print("as numerical both")
-print(as_numerical_both)
+  print("as numerical both")
+  print(as_numerical_both)
 
 
   # Normalize
@@ -385,7 +385,7 @@ print(as_numerical_both)
 
   # Calculate vector distance using Euclidean distance
   distance = (dist(rbind(mean_subset, mean_otherSubset)))
-  print("dist")
+  print(c("dist", distance))
   return(distance)
 }
 
