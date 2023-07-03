@@ -300,6 +300,7 @@ findNearestSubset <- function(subset, subsets, quasiIdentifiers) {
 #' @importFrom stats dist predict
 #' @importFrom caret dummyVars contr.ltfr
 #' @import caret
+#' @import MASS
 #'
 #' @return A numeric value representing the diversity distance between the two subsets.
 #'
@@ -326,17 +327,22 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
 
   # Combine the partial data frames into one
   both_sets <- rbind(subset, otherSubset)
+  print("check1")
 
   # Check the levels of variables
   levels_count <- lapply(both_sets, function(x) length(unique(x)))
+  print("check2")
 
   # Remove variables with only one level
   col_select <- both_sets[, levels_count > 1, drop=FALSE]
   both_sets <- both_sets[, ..col_select]
+  print("check3")
 
   # One-hot encode the combined data frame
   dummies_both <- dummyVars(" ~ .", data = both_sets)
+  print("check4")
   as_numerical_both <- predict(dummies_both, newdata = both_sets)
+  print("check5")
 
   # Normalize
   normalized_all = as.data.table(scale(as_numerical_both))
