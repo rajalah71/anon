@@ -2,7 +2,10 @@
 % Please edit documentation in R/l_div_subsets.r
 \name{matrix_distance}
 \alias{matrix_distance}
-\title{Calculate the diversity distance between two subsets based on the given quasi-identifiers}
+\title{importFrom caret dummyVars contr.ltfr
+import caret
+import MASS
+Calculate the diversity distance between two subsets based on the given quasi-identifiers}
 \usage{
 matrix_distance(subset, otherSubset, quasiIdentifiers)
 }
