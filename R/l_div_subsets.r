@@ -302,7 +302,7 @@ findNearestSubset <- function(subset, subsets, quasiIdentifiers) {
 #' @param quasiIdentifiers A character vector containing the names of the columns that serve as quasi-identifiers.
 #'
 #' @importFrom data.table rbindlist as.data.table
-#' @importFrom stats dist
+#' @importFrom stats dist predict
 #' @importFrom scorecard one_hot
 #' @importFrom caret dummyVars contr.ltfr
 #' @import caret
