@@ -304,6 +304,9 @@ findNearestSubset <- function(subset, subsets, quasiIdentifiers) {
 #' @importFrom data.table rbindlist as.data.table
 #' @importFrom stats dist
 #' @importFrom scorecard one_hot
+#' @importFrom caret dummyVars contr.ltfr
+#' @import caret
+#' @import onehot
 #'
 #' @return A numeric value representing the diversity distance between the two subsets.
 #'
@@ -363,11 +366,13 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
   }
 
   # One-hot encode the combined data frame
-  #dummies_both <- dummyVars(" ~ .", data = both_sets)
-  #print("between onehot")
-  #as_numerical_both <- stats::predict(dummies_both, newdata = both_sets)
+  # dummies_both <- dummyVars(" ~ .", data = both_sets)
+  # #print("between onehot")
+  # as_numerical_both <- stats::predict(dummies_both, newdata = both_sets)
 
-  as_numerical_both = one_hot(both_sets)
+  #as_numerical_both = one_hot(both_sets)
+
+  as_numerical_both = predict(onehot::onehot(both_sets, stringsAsFactors = TRUE, max_levels = 20), both_sets)
 
   # print("as numerical both")
   # print(as_numerical_both)
