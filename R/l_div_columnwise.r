@@ -69,6 +69,7 @@ is_l_diverse = function(df, quasi_id_cols, sensitive_cols, l) {
 #' @importFrom dplyr all_of
 #'
 #' @examples
+#' \donttest{
 #' df <- data.frame(
 #'   age = c(25, 30, 35, 40, 45),
 #'   gender = c("M", "M", "F", "F", "M"),
@@ -81,7 +82,7 @@ is_l_diverse = function(df, quasi_id_cols, sensitive_cols, l) {
 #'
 #' # Apply make_l_diverse function
 #' l_diverse_df <- make_l_diverse_columnwise(df, c("age", "gender"), "disease", list(age = age_fun, gender = gender_fun), 2)
-#'
+#'}
 #' @export
 make_l_diverse_columnwise <- function(df, quasi_id_cols, sensitive_cols, fun_list, l) {
 

@@ -59,6 +59,7 @@ is_k_anonymous = function(df, quasi_id_cols, k) {
 #'   or an error is thrown if the desired level of k-anonymity cannot be achieved.
 #'
 #' @examples
+#' \donttest{
 #' df <- data.frame(
 #'   age = c(25, 30, 35, 40, 45),
 #'   gender = c("M", "M", "F", "F", "M"),
@@ -71,7 +72,7 @@ is_k_anonymous = function(df, quasi_id_cols, k) {
 #'
 #' # Apply make_k_anonymous function
 #' k_anon_df <- make_k_anonymous(df, c("age", "income"), list(age = age_fun, income = income_fun), 2)
-#'
+#'}
 #' @export
 make_k_anonymous <- function(df, quasi_id_cols, fun_list, k) {
 

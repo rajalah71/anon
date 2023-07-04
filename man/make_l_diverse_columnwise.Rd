@@ -30,6 +30,7 @@ If not, it applies the functions iteratively to the columns until the desired le
 or it is not possible with the given functions.
 }
 \examples{
+\donttest{
 df <- data.frame(
   age = c(25, 30, 35, 40, 45),
   gender = c("M", "M", "F", "F", "M"),
@@ -42,5 +43,5 @@ gender_fun <- function(x) "*"
 
 # Apply make_l_diverse function
 l_diverse_df <- make_l_diverse_columnwise(df, c("age", "gender"), "disease", list(age = age_fun, gender = gender_fun), 2)
-
+}
 }

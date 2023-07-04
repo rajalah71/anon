@@ -28,6 +28,7 @@ not, it applies the functions iteratively to the columns until the desired level
 k-anonymity is achieved or it is not possible with the given functions.
 }
 \examples{
+\donttest{
 df <- data.frame(
   age = c(25, 30, 35, 40, 45),
   gender = c("M", "M", "F", "F", "M"),
@@ -40,5 +41,5 @@ income_fun <- function(x) round(x, -3)
 
 # Apply make_k_anonymous function
 k_anon_df <- make_k_anonymous(df, c("age", "income"), list(age = age_fun, income = income_fun), 2)
-
+}
 }
