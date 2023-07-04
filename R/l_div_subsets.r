@@ -357,8 +357,8 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
   # print(col_select)
   both_sets <- both_sets[, ..col_select]
 
-  # print("both sets after drop")
-  # print(both_sets)
+   print("both sets after drop")
+   print(both_sets)
 
   # If no columns are present anymore, the dataframes are indentical
   if(ncol(both_sets) == 0){
@@ -370,12 +370,12 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
   # #print("between onehot")
   # as_numerical_both <- stats::predict(dummies_both, newdata = both_sets)
 
-  #as_numerical_both = one_hot(both_sets)
+  as_numerical_both = one_hot(both_sets)
 
-  as_numerical_both = predict(onehot::onehot(both_sets, stringsAsFactors = TRUE, max_levels = 20), both_sets)
+  # as_numerical_both = predict(onehot::onehot(both_sets, stringsAsFactors = TRUE, max_levels = 20), both_sets)
 
   # print("as numerical both")
-  # print(as_numerical_both)
+  print(as_numerical_both)
 
 
   # Normalize
