@@ -5,6 +5,9 @@
 \title{importFrom caret dummyVars contr.ltfr
 import caret
 import MASS
+importFrom scorecard one_hot
+importFrom caret dummyVars contr.ltfr
+import caret
 Calculate the diversity distance between two subsets based on the given quasi-identifiers}
 \usage{
 matrix_distance(subset, otherSubset, quasiIdentifiers)

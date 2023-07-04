@@ -289,6 +289,9 @@ findNearestSubset <- function(subset, subsets, quasiIdentifiers) {
 #' importFrom caret dummyVars contr.ltfr
 #' import caret
 #' import MASS
+#' importFrom scorecard one_hot
+#' importFrom caret dummyVars contr.ltfr
+#' import caret
 
 #----------------
 
@@ -303,9 +306,6 @@ findNearestSubset <- function(subset, subsets, quasiIdentifiers) {
 #'
 #' @importFrom data.table rbindlist as.data.table
 #' @importFrom stats dist predict
-#' @importFrom scorecard one_hot
-#' @importFrom caret dummyVars contr.ltfr
-#' @import caret
 #' @import onehot
 #'
 #' @return A numeric value representing the diversity distance between the two subsets.
@@ -375,7 +375,7 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
   as_numerical_both = predict(onehot::onehot(both_sets, stringsAsFactors = TRUE, max_levels = 20), both_sets)
 
   # print("as numerical both")
-  print(as_numerical_both)
+  # print(as_numerical_both)
 
 
   # Normalize
