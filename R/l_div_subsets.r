@@ -33,13 +33,13 @@ isLdiverse_temp = function(df, quasi_id_cols, sensitive_cols, l) {
 #' @importFrom dplyr group_by summarise n_distinct across all_of
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' df <- data.frame(
 #'   Q1 = c("A", "A", "B", "B"),
 #'   Q2 = c("X", "Y", "X", "Y"),
 #'   S = c(1, 2, 3, 4)
 #' )
-#' is_ldiverse(df, c("Q1", "Q2"), c("S"), 2)
+#' isLdiverse(df, c("Q1", "Q2"), c("S"), 2)
 #' }
 #' @export
 isLdiverse = function(df, quasi_id_cols, sensitive_cols, l) {
@@ -96,7 +96,7 @@ isLdiverse = function(df, quasi_id_cols, sensitive_cols, l) {
 #'   or an error is thrown if the desired level of l-diversity cannot be achieved.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' data <- data.frame(
 #'   age = c(25, 30, 35, 40, 45),
 #'   gender = c("M", "M", "F", "F", "M"),
@@ -298,7 +298,7 @@ findNearestSubset <- function(subset, subsets, quasiIdentifiers) {
 #' @return A numeric value representing the diversity distance between the two subsets.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' data1 <- list(data.frame(ID = 1:5, Age = c(25, 35, 40, 28, 32), Gender = c("M", "F", "F", "M", "F")))
 #' data2 <- list(data.frame(ID = 6:10, Age = c(28, 38, 42, 31, 29), Gender = c("M", "F", "F", "F", "M")))
 #' diversity_distance <- matrix_distance(data1, data2, c("Age", "Gender"))

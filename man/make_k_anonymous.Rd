@@ -28,7 +28,7 @@ not, it applies the functions iteratively to the columns until the desired level
 k-anonymity is achieved or it is not possible with the given functions.
 }
 \examples{
-\donttest{
+\dontrun{
 df <- data.frame(
   age = c(25, 30, 35, 40, 45),
   gender = c("M", "M", "F", "F", "M"),

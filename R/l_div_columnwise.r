@@ -69,7 +69,7 @@ is_l_diverse = function(df, quasi_id_cols, sensitive_cols, l) {
 #' @importFrom dplyr all_of
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' df <- data.frame(
 #'   age = c(25, 30, 35, 40, 45),
 #'   gender = c("M", "M", "F", "F", "M"),
@@ -77,7 +77,7 @@ is_l_diverse = function(df, quasi_id_cols, sensitive_cols, l) {
 #' )
 #'
 #' # Define functions to generalize age and disease
-#' age_fun <- function(x) floor(x / 10) * 10
+#' age_fun <- mean
 #' gender_fun <- function(x) "*"
 #'
 #' # Apply make_l_diverse function

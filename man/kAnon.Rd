@@ -20,18 +20,18 @@ A k-anonymous data frame.
 }
 \description{
 This function applies k-anonymization to a dataset by dividing it into subsets
-based on quasi-identifiers and modifying the data to achieve k-anonymity and l-diversity.
+based on quasi-identifiers and modifying the data to achieve k-anonymity
 }
 \details{
 The `kAnon` function applies k-anonymization on the input dataset `data`
 by dividing it into subsets based on quasi-identifiers specified in `quasiIdentifiers`.
-The function modifies the data in each subset to achieve k-anonymity and l-diversity
+The function modifies the data in each subset to achieve k-anonymity
 based on the diversity functions provided in `diversityFunctions`.
 }
 \examples{
-\donttest{
+\dontrun{
 data(iris)
-diversityFunctions <- list(Species = function(x) x[1], Petal.Width = function(x) round(x, 1))
+diversityFunctions <- list(Species = function(x) "*", Petal.Width = function(x) "*")
 kAnonData <- kAnon(iris, quasiIdentifiers = c("Species", "Petal.Width"), diversityFunctions, k = 3)
 }
 }

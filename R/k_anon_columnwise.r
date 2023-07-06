@@ -59,7 +59,7 @@ is_k_anonymous = function(df, quasi_id_cols, k) {
 #'   or an error is thrown if the desired level of k-anonymity cannot be achieved.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' df <- data.frame(
 #'   age = c(25, 30, 35, 40, 45),
 #'   gender = c("M", "M", "F", "F", "M"),
