@@ -255,19 +255,6 @@ makeLdiverse <- function(data, quasiIdentifiers, sensitiveAttributes, diversityF
 #'
 #' @return The index of the nearest subset in the list.
 #'
-#' @examples
-#' \donttest{
-#' subset <- list(data.frame(
-#'   Q1 = c("A", "B"),
-#'   Q2 = c("X", "Y")
-#' ))
-#' subsets <- list(
-#'   data.frame(Q1 = "A", Q2 = "X"),
-#'   data.frame(Q1 = "A", Q2 = "Y"),
-#'   data.frame(Q1 = "B", Q2 = "X")
-#' )
-#' findNearestSubset(subset, subsets, c("Q1", "Q2"))
-#'}
 findNearestSubset <- function(subset, subsets, quasiIdentifiers) {
   nearestSubsetIndex <- 0  # Initialize the index of the nearest subset
   minDistance <- Inf  # Initialize the minimum distance to infinity
