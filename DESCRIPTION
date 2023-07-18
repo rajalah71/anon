@@ -13,6 +13,8 @@ Imports:
     data.table (>= 1.14.8),
     dplyr (>= 1.1.2),
     onehot (>= 0.1.1),
+    openssl (>= 2.0.6),
     R.utils (>= 2.12.2),
+    Rmpfr (>= 0.9.2),
     stats (>= 4.3.1)
 RoxygenNote: 7.2.3
