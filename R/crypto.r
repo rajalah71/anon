@@ -86,9 +86,12 @@ encrypt <- function(data, my_key = FALSE, bits = 2048) {
     uniques_enc[i] = length(unique(encrypted[[i]]))
 
     # print(encrypted[[i]])
-
-    for(j in seq_len(row)){
-      scaled[j,i] = as.double((encrypted[[i]][[j]] - min) / diff)
+    if(diff != 0){
+      for(j in seq_len(row)){
+        scaled[j,i] = as.double((encrypted[[i]][[j]] - min) / diff)
+      }
+    } else{
+        scaled[j,i] = 0
     }
   }
 
