@@ -39,10 +39,11 @@ encrypt_message = function(m, e, n, bits) {
 #'
 #' @param data The data frame to be encrypted and scaled.
 #' @param bits The number of bits used for precision in the RSA encryption.
+#' @param my_key Logical parameter: whether your own key from .ssh folder should be used or not
 #'
 #' @return A scaled data frame where each column contains the encrypted and scaled values.
 #'
-#' @importFrom openssl rsa_keygen
+#' @importFrom openssl rsa_keygen my_key
 #' @importFrom Rmpfr mpfr
 #'
 #' @examples
@@ -51,9 +52,14 @@ encrypt_message = function(m, e, n, bits) {
 #' print(encrypted_data)
 #'
 #' @export
-encrypt <- function(data, bits = 2048) {
+encrypt <- function(data, my_key = FALSE, bits = 2048) {
   # Step 4.1: Generate RSA keys
-  key = rsa_keygen(bits)
+  if(my_key){
+    key = my_key()
+  } else{
+    key = rsa_keygen(bits)
+    }
+
   pubkey = as.list(key)$pubkey
 
   # parameters for rsa
@@ -96,7 +102,7 @@ encrypt <- function(data, bits = 2048) {
 
 }
 
-# encrypt(data_frame)
+# encrypt(data3, T, 3072)
 #
 # data3 <- data.frame(
 #   age = c(1, 1, 1, 2, 2),
