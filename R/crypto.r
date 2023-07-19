@@ -90,8 +90,11 @@ encrypt <- function(data, my_key = FALSE, bits = 2048) {
       for(j in seq_len(row)){
         scaled[j,i] = as.double((encrypted[[i]][[j]] - min) / diff)
       }
-    } else{
+    }
+    else{
+      for(j in seq_len(row)){
         scaled[j,i] = 0
+      }
     }
   }
 
@@ -105,10 +108,10 @@ encrypt <- function(data, my_key = FALSE, bits = 2048) {
 
 }
 
-# encrypt(data3, T, 3072)
+# encrypt(data3)
 #
 # data3 <- data.frame(
-#   age = c(1, 1, 1, 2, 2),
+#   age = c(1, 1, 1, 1, 1),
 #   gender = c(2, 2, 2, 3, 3),
 #   zip_code = c(4, 4, 4, 5, 5),
 #   disease = c(4,5,5,6, 6)
