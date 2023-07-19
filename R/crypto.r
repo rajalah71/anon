@@ -22,7 +22,7 @@ encrypt_message = function(m, e, n, bits) {
   # Encrypt each bignum using bignum_mod_exp function with given parameters e and n
   encrypted_message <- lapply(message_bignum, function(x) bignum_mod_exp(x, e, n))
 
-  # read the encrypted values to
+  # read the encrypted values to char first and then to big floats
   as_character = lapply(encrypted_message, as.character)
   as_numerical = mpfr(unlist(as_character), bits)
 
@@ -76,6 +76,7 @@ encrypt <- function(data, my_key = FALSE, bits = 2048) {
   scaled = data.frame(matrix(nrow = row, ncol = col))
   colnames(scaled) = colnames(data)
 
+  # Amount of unique values before conversion to double
   uniques_enc = c()
 
   for(i in seq_len(col)){
@@ -98,12 +99,15 @@ encrypt <- function(data, my_key = FALSE, bits = 2048) {
     }
   }
 
+  # Amount of unique values after conversion to double
   uniques_double = sapply(scaled, function(x) length(unique(x)))
 
+  # Geometric mean for the column wise data loss vectors
   geometric_mean_result <- prod(uniques_double / uniques_enc)^(1/length(uniques_double / uniques_enc))
 
   cat("Information loss on conversion to double:",1-geometric_mean_result,"\n")
 
+  # Return the encrypted and scaled data
   return(scaled)
 
 }
