@@ -49,38 +49,93 @@ cell_swap = function(data){
 #' @export
 spectral = function(data, anonymizer){
 
-  # Make a new empty dataframe of original size and column names to store the centered data
-  centered = as.data.frame(matrix(nrow = nrow(data), ncol = ncol(data)))
-  colnames(centered) = colnames(data)
+  # One-hot encode the data using the 'onehot' package
+  oh = onehot::onehot(data, stringsAsFactors = TRUE, max_levels = Inf)
 
-  # Get the colmneans
-  means = sapply(data, mean)
+  # Initialize an empty vector to store the names of factor columns
+  names = c()
 
-  # Subtract the colmeans from the data
-  for(i in seq(ncol(data))){
-    centered[,i] = data[,i] - means[i]
+  # Identify and store the names of factor columns
+  for(item in oh){
+    if(item$type == "factor") names = append(names, item$name)
   }
 
-  # Get the singular value decomposition of the centered data, M = UDV'
+  # Perform the one-hot encoding of the data using the trained model
+  encoded = predict(oh, data)
+
+  # Convert categorical columns to {-1, 1} encoding
+  for(name in names){
+    cols = startsWith(colnames(encoded), name)
+    workingset = encoded[,cols]
+    withnegatives = (t(apply(workingset, 1, function(x) ifelse(x == 0, -1, 1))))
+    encoded[,cols] = withnegatives
+  }
+
+  # Store the {-1, 1} encoded data as 'onehot'
+  onehot = encoded
+
+  # Make a new empty dataframe of the original size and column names to store the centered data
+  centered = emptydf(onehot)
+
+  # Calculate the column means for centering the data
+  means = sapply(onehot, mean)
+
+  # Center the data by subtracting the column means from each column
+  for(i in seq(ncol(onehot))){
+    centered[,i] = onehot[,i] - means[i]
+  }
+
+  # Perform Singular Value Decomposition (SVD) on the centered data, M = UDV'
   svd = svd(centered)
 
-  # Anonymize U with the given function
+  # Anonymize matrix U from the SVD using the provided anonymization function
   u_anon = anonymizer(as.data.frame(svd$u))
 
-  # Recombine the anonymized centered data
+  # Reconstruct the anonymized centered data using UDV' form
   data_anon = as.data.frame(as.matrix(u_anon) %*% diag(svd$d) %*% t(svd$v))
   colnames(data_anon) = colnames(data)
 
-  # Make a new empty dataframe of original size and column names to store the decentered, anonymized data
-  decentered_anon = as.data.frame(matrix(nrow = nrow(data), ncol = ncol(data)))
-  colnames(decentered_anon) = colnames(data)
+  # Make a new empty dataframe of the original size and column names to store the decentered, anonymized data
+  decentered_anon = emptydf(onehot)
 
-  # Add the colmeans back to the anonymized data
-  for(i in seq(ncol(data))){
+  # Add the column means back to the anonymized data to decenter it
+  for(i in seq(ncol(onehot))){
     decentered_anon[,i] = data_anon[,i] + means[i]
   }
 
+  # Normalize the factor columns back to their original form using softmax
+  for(name in names){
+    cols = startsWith(colnames(decentered_anon), name)
+    workingset = decentered_anon[,cols]
+    normalized = (t(apply(workingset, 1, function(x)  (exp(x) / (1 + exp(x)))/sum(exp(x) / (1 + exp(x))) )))
+    decentered_anon[,cols] = normalized
+  }
+
+  # Return the decentered and anonymized data
   return(decentered_anon)
+}
+
+onehot_helper = function(data){
+  oh = onehot::onehot(data, stringsAsFactors = TRUE, max_levels = Inf)
+
+  names = c()
+
+  for(item in oh){
+    if(item$type == "factor") names = append(names, item$name)
+  }
+
+  encoded = predict(oh, data)
+
+  for(name in names){
+    cols = startsWith(colnames(encoded), name)
+    workingset = encoded[,cols]
+    #print(workingset)
+    withnegatives = (t(apply(workingset, 1, function(x) ifelse(x == 0, -1, 1))))
+    #print(withnegatives)
+    encoded[,cols] = withnegatives
+  }
+
+  return(encoded)
 }
 
 # fun_list <- list(
