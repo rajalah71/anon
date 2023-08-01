@@ -23,6 +23,8 @@ minmax_scaler = function(column){
   return(column)
 }
 
+#--------------------------------------
+
 #' Create an empty data frame with the same dimensions and column names as the input data.
 #'
 #' This function takes a data frame as input and returns a new empty data frame
@@ -43,6 +45,8 @@ emptydf = function(data){
   colnames(new) = colnames(data)
   return(new)
 }
+
+#----------------------------------------
 
 #' Shuffle the values in each column of a data frame.
 #'
@@ -69,4 +73,30 @@ shuffle = function(data){
 
   return(data)
 
+}
+
+#---------------------------
+
+#' Generate random numbers from a Laplace distribution.
+#'
+#' This function generates random numbers from a Laplace distribution
+#' with given location and scale parameters.
+#'
+#' @param n The number of random samples to generate.
+#' @param location The location parameter (mean) of the Laplace distribution.
+#' @param scale The scale parameter (spread) of the Laplace distribution.
+#'
+#' @return A numeric vector containing \code{n} random numbers following
+#' the Laplace distribution.
+#'
+#' @importFrom stats runif
+#'
+#' @examples
+#' rlaplace(10, 0, 1)
+#'
+#' @export
+rlaplace <- function(n, location, scale) {
+  u <- runif(n, min = 0, max = 1) # Generate n uniform random numbers
+  laplace_numbers <- location - scale * sign(u - 0.5) * log(1 - 2 * abs(u - 0.5))
+  return(laplace_numbers)
 }

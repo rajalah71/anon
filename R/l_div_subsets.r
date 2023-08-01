@@ -30,6 +30,7 @@ isLdiverse_temp = function(df, quasi_id_cols, sensitive_cols, l) {
 #'
 #' @return A logical value indicating whether the DataFrame is l-diverse.
 #'
+#'
 #' @importFrom dplyr group_by summarise n_distinct across all_of
 #'
 #' @examples
@@ -95,6 +96,8 @@ isLdiverse = function(df, quasi_id_cols, sensitive_cols, l) {
 #' @return A dataset that is l-diverse with respect to the specified quasi-identifier columns and sensitive attributes,
 #'   or an error is thrown if the desired level of l-diversity cannot be achieved.
 #'
+#' @importFrom utils flush.console
+#'
 #' @examples
 #' \dontrun{
 #' data <- data.frame(
@@ -140,12 +143,13 @@ makeLdiverse <- function(data, quasiIdentifiers, sensitiveAttributes, diversityF
   i = 0
 
   # Iterate over subsets
-  cat("Iterating over all subsets:", subset_length, " iterations at most. \n" )
+  # cat("Iterating over all subsets:", subset_length, " iterations at most. \n" )
 
   while (TRUE) {
     # For printing the progress
     print_counter = print_counter + 1
-    cat("Iteration:", print_counter, "\n")
+    cat("Iteration:", print_counter, "/", subset_length, "\r")
+    flush.console()
 
     # Increase indexing
     i = i + 1

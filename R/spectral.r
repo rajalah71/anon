@@ -28,6 +28,42 @@ cell_swap = function(data){
   return(shuffled)
 }
 
+#---------------------------------------------
+
+#' Add Laplace-distributed noise to each column of the data for differential privacy.
+#'
+#' This function adds Laplace-distributed noise to each column of the input data to achieve
+#' differential privacy. The Laplace noise is controlled by the privacy parameter \code{epsilon}.
+#' Higher \code{epsilon} values allow for more noise and provide weaker privacy guarantees.
+#' The privacy guarantees depend on the choice of \code{epsilon}, which determines the scale
+#' of the Laplace distribution.
+#'
+#' @param data A data frame or matrix containing the original data.
+#' @param epsilon The privacy parameter controlling the amount of noise added.
+#'
+#' @return A data frame or matrix with Laplace-distributed noise added to each column.
+#'
+#' @examples
+#' # Create a sample data frame
+#' data <- data.frame(A = c(10, 12, 14), B = c(0, 5, 8))
+#' # Add Laplace noise with epsilon = 0.1
+#' sensitive_noise(data, epsilon = 0.1)
+#'
+#' @export
+sensitive_noise = function(data, epsilon = 1){
+  # add noise to each column of the data according to the maximum difference in the given column from laplace distribution with mean 0 and scale=diff/epsilon
+  for(i in seq(ncol(data))){
+    diff = max(data[,i]) - min(data[,i])
+    data[,i] = data[,i] + rlaplace(nrow(data), 0, diff/epsilon)
+  }
+
+  return(data)
+}
+
+
+
+#---------------------------------------------
+
 #' Anonymize and decenter a data frame using spectral decomposition.
 #'
 #' This function takes a data frame as input and performs spectral decomposition
@@ -46,11 +82,14 @@ cell_swap = function(data){
 #'
 #' @return A new data frame of the same size as data, containing the
 #'         decentered and anonymized data.
+#'
+#' @importFrom onehot onehot
+#'
 #' @export
 spectral = function(data, anonymizer){
 
   # One-hot encode the data using the 'onehot' package
-  oh = onehot::onehot(data, stringsAsFactors = TRUE, max_levels = Inf)
+  oh = onehot(data, stringsAsFactors = TRUE, max_levels = Inf)
 
   # Initialize an empty vector to store the names of factor columns
   names = c()
@@ -111,9 +150,18 @@ spectral = function(data, anonymizer){
     decentered_anon[,cols] = normalized
   }
 
+  # for(name in names){
+  #   cols = startsWith(colnames(decentered_anon), name)
+  #   workingset = decentered_anon[,cols]
+  #   normalized = t(apply(workingset, 1, function(x)  which.max(x) ))
+  #   decentered_anon[,cols] = normalized
+  # }
+
   # Return the decentered and anonymized data
   return(decentered_anon)
 }
+
+#---------------------------------------
 
 onehot_helper = function(data){
   oh = onehot::onehot(data, stringsAsFactors = TRUE, max_levels = Inf)
@@ -138,36 +186,7 @@ onehot_helper = function(data){
   return(encoded)
 }
 
-# fun_list <- list(
-#   Sepal.Length = mean,
-#   Sepal.Width = mean,
-#   Petal.Length = mean,
-#   Petal.Width = mean
-# )
-#
-# anon::makeLdiverse(data2[1:100,], c("age", "zip_code", "gender"), "disease", fun_list_4, 2)
-#
-# fun = function(x){
-#   anon::makeLdiverse(x, colnames(x)[-5], "Species", fun_list, 2)
-# }
-#
-# spectral(iris, fun)
-#
-# anon::makeLdiverse(iris, colnames(iris)[-5], "Species", fun_list, 2)
 
-# ind <- sample(2, nrow(iris), replace = TRUE, prob = c(0.7, 0.3))
-# train <- iris[ind==1,]
-# test <- iris[ind==2,]
-#
-# anon = spectral(iris[,1:4], cell_swap)
-# spectral_train = cbind(anon[ind==1,], iris[ind==1,5])
-# colnames(spectral_train) = colnames(iris)
-# spectral_test = cbind(anon[ind==2,], iris[ind==2,5])
-# colnames(spectral_test) = colnames(iris)
-#
-# rf <- randomForest(as.factor(Species)~., data=train)
-# mean(predict(rf, test) == test[,5])
-#
-# rf_anon = randomForest(as.factor(Species)~., data=spectral_train)
-# mean(predict(rf_anon, spectral_test) == spectral_test[,5])
+
+
 
