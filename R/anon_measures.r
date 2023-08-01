@@ -149,41 +149,42 @@ prediction_ambiguity = function(original_data, k, reference_data = NULL, dist = 
 #' @param k Number of best matches to find.
 #' @param dist Distance function to use (default: euc_dist).
 #' @return A numeric vector containing the variances for each row of the original_data.
-#' @export
 #'
 #' @examples
 #' prediction_uncertainty(original_data = iris, k = 3)
 #'
 #' @importFrom onehot onehot
+#' @export
 prediction_uncertainty = function(original_data, k, reference_data = NULL, dist = euc_dist){
   # Prediction uncertainty gives the variation among the k best matches for each row of the original data in the reference data
   # for each row of the original data, find the k best matches in the reference data using the dist function
 
   # If the reference data is null, the function performs leave-one-out cross-validation to calculate the distance between each row of the original data against the rest of the original data
 
-  # onehot encode the datasets to enable distance calculations. Only run the numeric version if it is not null
-  numeric_original = predict(onehot(original_data, stringsAsFactors = TRUE, max_levels = Inf), original_data)
-  if(!is.null(reference_data)) numeric_reference = predict(onehot(reference_data, stringsAsFactors = TRUE, max_levels = Inf), reference_data)
+  # onehot encode the datasets to enable distance calculations
+  original_data = predict(onehot(original_data, stringsAsFactors = TRUE, max_levels = Inf), original_data)
+  # cat("pass\n")
+  if(!is.null(reference_data)) reference_data = predict(onehot(reference_data, stringsAsFactors = TRUE, max_levels = Inf), reference_data)
 
-  # scale both datasets
-  numeric_original = scale(numeric_original)
-  if(!is.null(reference_data)) numeric_reference = scale(numeric_reference)
+  # scale the datasets to have mean 0 and standard deviation 1
+  original_data = scale(original_data)
+  if(!is.null(reference_data)) reference_data = scale(reference_data)
 
   # empty vector to store the variances
-  variances = rep_len(NA, nrow(numeric_original))
+  variances = rep_len(NA, nrow(original_data))
 
   # find the k nearest rows in the reference data for each row of the original data. If the reference data is null, the function performs leave-one-out cross-validation to calculate the distance between each row of the original data against the rest of the original data
   if(!is.null(reference_data)){
-    for(i in seq(nrow(numeric_original))){
-      k_nearest = as.data.frame(matrix(NA, k, ncol(numeric_original)))
+    for(i in seq(nrow(original_data))){
+      k_nearest = as.data.frame(matrix(NA, k, ncol(original_data)))
 
       # add rows of the reference data to the k_nearest dataframe if they are closer than the current furthest row
-      for(j in seq(nrow(numeric_reference))){
+      for(j in seq(nrow(reference_data))){
         if(j <= k){
-          k_nearest[j,] = numeric_reference[j,]
+          k_nearest[j,] = reference_data[j,]
         } else {
-          if(dist(numeric_original[i,], numeric_reference[j,]) < max(distances(k_nearest, numeric_original[i,], dist = dist))){
-            k_nearest[which.max(distances(k_nearest, numeric_original[i,], dist = dist)),] = numeric_reference[j,]
+          if(dist(original_data[i,], reference_data[j,]) < max(distances(k_nearest, original_data[i,], dist = dist))){
+            k_nearest[which.max(distances(k_nearest, original_data[i,], dist = dist)),] = reference_data[j,]
           }
         }
       }
@@ -193,19 +194,19 @@ prediction_uncertainty = function(original_data, k, reference_data = NULL, dist 
 
     }
   } else{
-    for(i in seq(nrow(numeric_original))){
-      k_nearest = as.data.frame(matrix(NA, k, ncol(numeric_original)))
+    for(i in seq(nrow(original_data))){
+      k_nearest = as.data.frame(matrix(NA, k, ncol(original_data)))
 
       # add rows of the reference data to the k_nearest dataframe if they are closer than the current furthest row
-      for(j in seq(nrow(numeric_original))){
+      for(j in seq(nrow(original_data))){
         # skip the row if it is the same as the row of the original data
         if(j == i) next
 
         if(anyNA(k_nearest)){
-          k_nearest[j,] = numeric_original[j,]
+          k_nearest[j,] = original_data[j,]
         } else {
-          if(dist(numeric_original[i,], numeric_original[j,]) < max(distances(k_nearest, numeric_original[i,], dist = dist))){
-            k_nearest[which.max(distances(k_nearest, numeric_original[i,], dist = dist)),] = numeric_original[j,]
+          if(dist(original_data[i,], original_data[j,]) < max(distances(k_nearest, original_data[i,], dist = dist))){
+            k_nearest[which.max(distances(k_nearest, original_data[i,], dist = dist)),] = original_data[j,]
           }
         }
       }
@@ -216,9 +217,7 @@ prediction_uncertainty = function(original_data, k, reference_data = NULL, dist 
     }
   }
 
-
   return(variances)
-
 
 }
 
