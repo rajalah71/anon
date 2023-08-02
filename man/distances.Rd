@@ -22,9 +22,8 @@ This function calculates the minimum distance between each row of the
 \code{original_data} and every row of the \code{reference_data} using a specified
 distance function (\code{dist}). The datasets are first one-hot encoded to enable
 distance calculations. The function then scales the datasets to have mean 0 and
-standard deviation 1. If \code{cross_val} is set to \code{TRUE}, the function
-performs leave-one-out cross-validation to calculate the distance between each row
-of the \code{original_data} against the rest of the \code{original_data}. If
-\code{cross_val} is \code{FALSE}, the function calculates the distance between
+standard deviation 1. If reference_data is NULL, calculate the distance between each row
+of the \code{original_data} against the rest of the \code{original_data}. Otherwise
+the function calculates the distance between
 each row of the \code{original_data} and every row of the \code{reference_data}.
 }

@@ -32,10 +32,9 @@ euc_dist = function(x,y){
 #' \code{original_data} and every row of the \code{reference_data} using a specified
 #' distance function (\code{dist}). The datasets are first one-hot encoded to enable
 #' distance calculations. The function then scales the datasets to have mean 0 and
-#' standard deviation 1. If \code{cross_val} is set to \code{TRUE}, the function
-#' performs leave-one-out cross-validation to calculate the distance between each row
-#' of the \code{original_data} against the rest of the \code{original_data}. If
-#' \code{cross_val} is \code{FALSE}, the function calculates the distance between
+#' standard deviation 1. If reference_data is NULL, calculate the distance between each row
+#' of the \code{original_data} against the rest of the \code{original_data}. Otherwise
+#' the function calculates the distance between
 #' each row of the \code{original_data} and every row of the \code{reference_data}.
 #'
 #' @param original_data A data frame representing the original dataset.
@@ -76,7 +75,7 @@ distances = function(original_data, reference_data = NULL, dist = euc_dist){
           distances = append(distances, dist(original_data[i,], original_data[j,]))
         }
       }
-      sorted_distances[i,] = sort(distances)
+      sorted_distances[i,] = (distances)
     }
   } else {
     sorted_distances = as.data.frame(matrix(NA, nrow(original_data), nrow(reference_data)))
@@ -85,7 +84,7 @@ distances = function(original_data, reference_data = NULL, dist = euc_dist){
       for(j in seq(nrow(reference_data))){
         distances[j] = dist(original_data[i,], reference_data[j,])
       }
-      sorted_distances[i,] = sort(distances)
+      sorted_distances[i,] = (distances)
     }
   }
   return(sorted_distances)
@@ -105,6 +104,10 @@ distances = function(original_data, reference_data = NULL, dist = euc_dist){
 prediction_distance = function(original_data, reference_data = NULL, dist = euc_dist){
   # calculate distances
   distances = distances(original_data, reference_data, dist)
+
+  # sort each row in ascending order
+  distances = t(apply(distances, 1, sort))
+
   # return the first column of the distances
   return(distances[,1])
 }
@@ -132,13 +135,16 @@ prediction_distance = function(original_data, reference_data = NULL, dist = euc_
 prediction_ambiguity = function(original_data, k, reference_data = NULL, dist = euc_dist){
   # Prediction ambiguity gives the relative distance from the record Aj to the nearest versus the kth-nearest record in the set distances
   distances = distances(original_data, reference_data, dist)
+
+  # sort each row in ascending order
+  distances = t(apply(distances, 1, sort))
+
   # return the first column of the distances divided by the kth column of the distances
   return(distances[,1]/distances[,k])
 }
 
 
 #-----------------------------------------------------------------
-
 
 #' Prediction Uncertainty
 #'
@@ -159,11 +165,82 @@ prediction_uncertainty = function(original_data, k, reference_data = NULL, dist 
   # Prediction uncertainty gives the variation among the k best matches for each row of the original data in the reference data
   # for each row of the original data, find the k best matches in the reference data using the dist function
 
+  # calculate distances between each row of the original data and the reference data using the specified distance function
+  distances = distances(original_data, reference_data, dist)
+
+  # onehot encode and scale both datasets
+  original_data = predict(onehot(original_data, stringsAsFactors = TRUE, max_levels = Inf), original_data)
+  if(!is.null(reference_data)) reference_data = predict(onehot(reference_data, stringsAsFactors = TRUE, max_levels = Inf), reference_data)
+  original_data = scale(original_data)
+  if(!is.null(reference_data)) reference_data = scale(reference_data)
+
+  # Empty vector to store variances
+  variances = rep_len(NA, nrow(original_data)-1)
+
+  # if reference data is null, operate on the original data
+  if(is.null(reference_data)){
+    # iterate over each row of the original data
+    for(i in seq(nrow(original_data))){
+
+      # find the indices of the lowest k distances in the ith row of the distances dataset
+      k_best_matches = order(as.matrix(distances[i,]))[1:k]
+
+      # exclude the ith row from the original_data
+      original_data_without_i = original_data[-i,]
+
+      # pick the k best matches from the original_data_without_i
+      k_best_matches_rows = original_data_without_i[k_best_matches,]
+
+      # calculate the mean variance of the k best matches rows
+      variances[i] = mean(apply(k_best_matches_rows, 2, var))
+    }
+  } else{
+    # iterate over each row of the original data
+    for(i in seq(nrow(original_data))){
+
+      # find the indices of the lowest k distances in the ith row of the distances dataset
+      k_best_matches = order(as.matrix(distances[i,]))[1:k]
+
+      # pick the k best matches from the reference_data
+      k_best_matches_rows = reference_data[k_best_matches,]
+
+      # calculate the mean variance of the k best matches rows
+      variances[i] = mean(apply(k_best_matches_rows, 2, var))
+    }
+  }
+
+  # return the variances
+  return(variances)
+
+}
+
+
+#-----------------------------------------------------------------
+
+
+#' Prediction Uncertainty
+#'
+#' Prediction uncertainty gives the variation among the k best matches for each row of the original data in the reference data for each row of the original data, find the k best matches in the reference data using the dist function. If the reference data is null, the function performs leave-one-out cross-validation to calculate the distance between each row of the original data against the rest of the original data. Onehot encode the datasets to enable distance calculations. Only run the numeric version if it is not null.
+#'
+#' @param original_data The original dataset.
+#' @param reference_data The reference dataset of the same column space (default: NULL).
+#' @param k Number of best matches to find.
+#' @param dist Distance function to use (default: euc_dist).
+#' @return A numeric vector containing the variances for each row of the original_data.
+#'
+#' @examples
+#' prediction_uncertainty(original_data = iris, k = 3)
+#'
+#' @importFrom onehot onehot
+prediction_uncertainty_legacy = function(original_data, k, reference_data = NULL, dist = euc_dist){
+  # Prediction uncertainty gives the variation among the k best matches for each row of the original data in the reference data
+  # for each row of the original data, find the k best matches in the reference data using the dist function
+
   # If the reference data is null, the function performs leave-one-out cross-validation to calculate the distance between each row of the original data against the rest of the original data
 
   # onehot encode the datasets to enable distance calculations
   original_data = predict(onehot(original_data, stringsAsFactors = TRUE, max_levels = Inf), original_data)
-  # cat("pass\n")
+  cat("pass\n")
   if(!is.null(reference_data)) reference_data = predict(onehot(reference_data, stringsAsFactors = TRUE, max_levels = Inf), reference_data)
 
   # scale the datasets to have mean 0 and standard deviation 1
@@ -172,6 +249,8 @@ prediction_uncertainty = function(original_data, k, reference_data = NULL, dist 
 
   # empty vector to store the variances
   variances = rep_len(NA, nrow(original_data))
+
+  cat("pass2\n")
 
   # find the k nearest rows in the reference data for each row of the original data. If the reference data is null, the function performs leave-one-out cross-validation to calculate the distance between each row of the original data against the rest of the original data
   if(!is.null(reference_data)){
