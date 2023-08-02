@@ -4,7 +4,7 @@
 \alias{spectral}
 \title{Anonymize and decenter a data frame using spectral decomposition.}
 \usage{
-spectral(data, anonymizer)
+spectral(data, anonymizer, sample = FALSE, cat_as_num = FALSE)
 }
 \arguments{
 \item{data}{A data frame to be anonymized and decentered.}
@@ -14,10 +14,15 @@ spectral(data, anonymizer)
 take a data frame as input and return an anonymized data frame.
 For example, the anonymizer function could perform a random
 permutation of rows to achieve anonymization.}
+
+\item{sample}{Logical: Whether to sample from the numerical columns
+or take the max}
+
+\item{cat_as_num}{Logical: Whether categorical variables should be returned
+as numerical or not}
 }
 \value{
-A new data frame of the same size as data, containing the
-        decentered and anonymized data.
+A new data frame containing the anonymized data.
 }
 \description{
 This function takes a data frame as input and performs spectral decomposition

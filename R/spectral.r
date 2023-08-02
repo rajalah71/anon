@@ -80,13 +80,18 @@ sensitive_noise = function(data, epsilon = 1){
 #'                   For example, the anonymizer function could perform a random
 #'                   permutation of rows to achieve anonymization.
 #'
-#' @return A new data frame of the same size as data, containing the
-#'         decentered and anonymized data.
+#' @param sample Logical: Whether to sample from the numerical columns
+#'                or take the max
+#'
+#' @param cat_as_num Logical: Whether categorical variables should be returned
+#'                    as numerical or not
+#'
+#' @return A new data frame containing the anonymized data.
 #'
 #' @importFrom onehot onehot
 #'
 #' @export
-spectral = function(data, anonymizer){
+spectral = function(data, anonymizer, sample = FALSE, cat_as_num = FALSE){
 
   # One-hot encode the data using the 'onehot' package
   oh = onehot(data, stringsAsFactors = TRUE, max_levels = Inf)
@@ -106,7 +111,7 @@ spectral = function(data, anonymizer){
   for(name in names){
     cols = startsWith(colnames(encoded), name)
     workingset = encoded[,cols]
-    withnegatives = (t(apply(workingset, 1, function(x) ifelse(x == 0, -1, 1))))
+    withnegatives = t(apply(workingset, 1, function(x) ifelse(x == 0, -1, 1)))
     encoded[,cols] = withnegatives
   }
 
@@ -142,20 +147,18 @@ spectral = function(data, anonymizer){
     decentered_anon[,i] = data_anon[,i] + means[i]
   }
 
-  # Normalize the factor columns back to their original form using softmax
+  # Normalize the factor columns using softmax
   for(name in names){
     cols = startsWith(colnames(decentered_anon), name)
     workingset = decentered_anon[,cols]
-    normalized = (t(apply(workingset, 1, function(x)  (exp(x) / (1 + exp(x)))/sum(exp(x) / (1 + exp(x))) )))
+    normalized = t(apply(workingset, 1, function(x)  (exp(x) / (1 + exp(x)))/sum(exp(x) / (1 + exp(x))) ))
     decentered_anon[,cols] = normalized
   }
 
-  # for(name in names){
-  #   cols = startsWith(colnames(decentered_anon), name)
-  #   workingset = decentered_anon[,cols]
-  #   normalized = t(apply(workingset, 1, function(x)  which.max(x) ))
-  #   decentered_anon[,cols] = normalized
-  # }
+  # Return the categorical values as categorical if wanted, using sampling if TRUE
+  if(!cat_as_num){
+    return(inverse_onehot(decentered_anon, names, sample))
+  }
 
   # Return the decentered and anonymized data
   return(decentered_anon)
