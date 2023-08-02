@@ -100,3 +100,36 @@ rlaplace <- function(n, location, scale) {
   laplace_numbers <- location - scale * sign(u - 0.5) * log(1 - 2 * abs(u - 0.5))
   return(laplace_numbers)
 }
+
+#-------------------------------------------------------
+
+inverse_onehot = function(data, names){
+  # the inverse operation to one hot encoding, i.e. from one hot encoded data to the original data
+  # names: the names of the categorical variables in the original data
+
+  # iterate over the names of the categorical variables and combine the one hot encoded columns into one column
+  for(name in names){
+    # get the columns that are one hot encoded
+    one_hot_columns = grep(name, names(data))
+
+    # get the names of the grepped columns
+    one_hot_columns_names = names(data)[one_hot_columns]
+
+    # remove the first part of the column names, as in the one hot encoding the column names are of the form "name=level". We only need the level part
+    one_hot_columns_names = gsub(paste0(name, "="), "", one_hot_columns_names)
+
+
+    print(one_hot_columns_names)
+
+
+    # combine the columns such that the value of the combined column is the column which has the highest value
+    data[, name] = apply(data[, one_hot_columns], 1, function(x) paste(which(x == max(x))))
+     
+    # data[, name] = apply(data[, one_hot_columns], 1, function(x) paste(which(x == 1)))
+    # remove the one hot encoded columns
+    data = data[, -one_hot_columns]
+  }
+
+  return(data)
+
+}
