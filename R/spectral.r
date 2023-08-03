@@ -30,11 +30,11 @@ cell_swap = function(data){
 
 #---------------------------------------------
 
-#' Add Laplace-distributed noise to each column of the data for differential privacy.
+#' Add Laplace-distributed noise to each column of the data.
 #'
-#' This function adds Laplace-distributed noise to each column of the input data to achieve
-#' differential privacy. The Laplace noise is controlled by the privacy parameter \code{epsilon}.
-#' Higher \code{epsilon} values allow for more noise and provide weaker privacy guarantees.
+#' This function adds Laplace-distributed noise to each column of the input data.
+#' The Laplace noise is controlled by the privacy parameter \code{epsilon}.
+#' Higher \code{epsilon} values allow for less noise and provide lower privacy guarantees.
 #' The privacy guarantees depend on the choice of \code{epsilon}, which determines the scale
 #' of the Laplace distribution.
 #'
@@ -64,12 +64,12 @@ sensitive_noise = function(data, epsilon = 1){
 
 #---------------------------------------------
 
-#' Anonymize and decenter a data frame using spectral decomposition.
+#' Anonymize a data frame using spectral decomposition.
 #'
 #' This function takes a data frame as input and performs spectral decomposition
-#' to anonymize the data by altering its principal components. The anonymization
-#' is done by applying a user-defined anonymizer function to the principal
-#' components. The function then reconstructs the decentered, anonymized data
+#' to anonymize the data by altering its left singular vectors. The anonymization
+#' is done by applying a user-defined anonymizer function to vectors.
+#' The function then reconstructs the decentered, anonymized data
 #' and returns it as a new data frame.
 #'
 #' @param data A data frame to be anonymized and decentered.

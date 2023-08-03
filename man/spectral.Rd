@@ -2,7 +2,7 @@
 % Please edit documentation in R/spectral.r
 \name{spectral}
 \alias{spectral}
-\title{Anonymize and decenter a data frame using spectral decomposition.}
+\title{Anonymize a data frame using spectral decomposition.}
 \usage{
 spectral(data, anonymizer, sample = FALSE, cat_as_num = FALSE)
 }
@@ -26,8 +26,8 @@ A new data frame containing the anonymized data.
 }
 \description{
 This function takes a data frame as input and performs spectral decomposition
-to anonymize the data by altering its principal components. The anonymization
-is done by applying a user-defined anonymizer function to the principal
-components. The function then reconstructs the decentered, anonymized data
+to anonymize the data by altering its left singular vectors. The anonymization
+is done by applying a user-defined anonymizer function to vectors.
+The function then reconstructs the decentered, anonymized data
 and returns it as a new data frame.
 }

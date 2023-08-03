@@ -138,10 +138,14 @@ rlaplace <- function(n, location, scale) {
 
 #' Inverse One-Hot Encoding
 #'
-#' Perform the inverse operation to one-hot encoding, i.e., from one-hot encoded data to the original data.
+#' Perform the inverse operation to one-hot encoding, i.e.,
+#'  from one-hot encoded data to the original data.
 #'
 #' @param data The one-hot encoded dataset.
 #' @param names The names of the categorical variables in the original data.
+#'                Names in the original are assumed to be mapped to "name=level"
+#'                in the one hot encoded data given. Works well with
+#'                "onehot" package.
 #' @param sample Logical: Whether to sample from the numerical columns or take the max
 #' @return The original data with categorical variables restored from one-hot encoding.
 #'

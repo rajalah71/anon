@@ -25,5 +25,5 @@ distance calculations. The function then scales the datasets to have mean 0 and
 standard deviation 1. If reference_data is NULL, calculate the distance between each row
 of the \code{original_data} against the rest of the \code{original_data}. Otherwise
 the function calculates the distance between
-each row of the \code{original_data} and every row of the \code{reference_data}.
+each row of the \code{original_data} against every row of the \code{reference_data}.
 }

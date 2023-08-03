@@ -2,7 +2,7 @@
 % Please edit documentation in R/spectral.r
 \name{sensitive_noise}
 \alias{sensitive_noise}
-\title{Add Laplace-distributed noise to each column of the data for differential privacy.}
+\title{Add Laplace-distributed noise to each column of the data.}
 \usage{
 sensitive_noise(data, epsilon = 1)
 }
@@ -15,9 +15,9 @@ sensitive_noise(data, epsilon = 1)
 A data frame or matrix with Laplace-distributed noise added to each column.
 }
 \description{
-This function adds Laplace-distributed noise to each column of the input data to achieve
-differential privacy. The Laplace noise is controlled by the privacy parameter \code{epsilon}.
-Higher \code{epsilon} values allow for more noise and provide weaker privacy guarantees.
+This function adds Laplace-distributed noise to each column of the input data.
+The Laplace noise is controlled by the privacy parameter \code{epsilon}.
+Higher \code{epsilon} values allow for less noise and provide lower privacy guarantees.
 The privacy guarantees depend on the choice of \code{epsilon}, which determines the scale
 of the Laplace distribution.
 }

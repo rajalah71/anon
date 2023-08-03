@@ -24,7 +24,13 @@ prediction_uncertainty(
 A numeric vector containing the variances for each row of the original_data.
 }
 \description{
-Prediction uncertainty gives the variation among the k best matches for each row of the original data in the reference data for each row of the original data, find the k best matches in the reference data using the dist function. If the reference data is null, the function performs leave-one-out cross-validation to calculate the distance between each row of the original data against the rest of the original data. Onehot encode the datasets to enable distance calculations. Only run the numeric version if it is not null.
+Prediction uncertainty gives the variation among the k best matches for each
+row of the original data in the reference data for each row of the original
+data, find the k best matches in the reference data using the dist function.
+If the reference data is null, the function performs leave-one-out method to
+calculate the distance between each row of the original data against the rest
+nof the original data. Onehot encode and scale the datasets to
+enable distance calculations.
 }
 \examples{
 prediction_uncertainty(original_data = iris, k = 3)

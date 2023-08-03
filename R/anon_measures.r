@@ -35,7 +35,7 @@ euc_dist = function(x,y){
 #' standard deviation 1. If reference_data is NULL, calculate the distance between each row
 #' of the \code{original_data} against the rest of the \code{original_data}. Otherwise
 #' the function calculates the distance between
-#' each row of the \code{original_data} and every row of the \code{reference_data}.
+#' each row of the \code{original_data} against every row of the \code{reference_data}.
 #'
 #' @param original_data A data frame representing the original dataset.
 #'
@@ -54,10 +54,12 @@ distances = function(original_data, reference_data = NULL, dist = euc_dist){
   original_data = predict(onehot(original_data, stringsAsFactors = TRUE, max_levels = Inf), original_data)
   if(!is.null(reference_data)) reference_data = predict(onehot(reference_data, stringsAsFactors = TRUE, max_levels = Inf), reference_data)
 
-  # check if the dataframes have the same number columns and stop if not
-  # if(ncol(original_data) != ncol(reference_data)){
-  #   stop("The dataframes do not have the same number of columns. Onehot encode them both first.")
-  # }
+  # check if the dataframes have the same number columns and stop if not (only if reference_data != NULL)
+  if(!is.null(reference_data)){
+    if(ncol(original_data) != ncol(reference_data)){
+      stop("The dataframes do not have the same number of columns.")
+    }
+  }
 
   # scale the datasets to have mean 0 and standard deviation 1
   original_data = scale(original_data)
@@ -148,7 +150,13 @@ prediction_ambiguity = function(original_data, k, reference_data = NULL, dist = 
 
 #' Prediction Uncertainty
 #'
-#' Prediction uncertainty gives the variation among the k best matches for each row of the original data in the reference data for each row of the original data, find the k best matches in the reference data using the dist function. If the reference data is null, the function performs leave-one-out cross-validation to calculate the distance between each row of the original data against the rest of the original data. Onehot encode the datasets to enable distance calculations. Only run the numeric version if it is not null.
+#' Prediction uncertainty gives the variation among the k best matches for each
+#' row of the original data in the reference data for each row of the original
+#' data, find the k best matches in the reference data using the dist function.
+#' If the reference data is null, the function performs leave-one-out method to
+#' calculate the distance between each row of the original data against the rest
+#' nof the original data. Onehot encode and scale the datasets to
+#' enable distance calculations.
 #'
 #' @param original_data The original dataset.
 #' @param reference_data The reference dataset of the same column space (default: NULL).
@@ -160,6 +168,7 @@ prediction_ambiguity = function(original_data, k, reference_data = NULL, dist = 
 #' prediction_uncertainty(original_data = iris, k = 3)
 #'
 #' @importFrom onehot onehot
+#' @importFrom stats var
 #' @export
 prediction_uncertainty = function(original_data, k, reference_data = NULL, dist = euc_dist){
   # Prediction uncertainty gives the variation among the k best matches for each row of the original data in the reference data
@@ -217,21 +226,99 @@ prediction_uncertainty = function(original_data, k, reference_data = NULL, dist 
 
 #-----------------------------------------------------------------
 
-
-#' Prediction Uncertainty
+#' Prediction All Measures
 #'
-#' Prediction uncertainty gives the variation among the k best matches for each row of the original data in the reference data for each row of the original data, find the k best matches in the reference data using the dist function. If the reference data is null, the function performs leave-one-out cross-validation to calculate the distance between each row of the original data against the rest of the original data. Onehot encode the datasets to enable distance calculations. Only run the numeric version if it is not null.
+#' Wrapper function to calculate all the measures for reference and original data,
+#' store them into a list in the order of prediction distance,
+#' prediction ambiguity, and prediction uncertainty,
+#' and return the list.
 #'
 #' @param original_data The original dataset.
-#' @param reference_data The reference dataset of the same column space (default: NULL).
-#' @param k Number of best matches to find.
+#' @param k Number of kth-nearest records to consider.
+#' @param reference_data The reference dataset.
 #' @param dist Distance function to use (default: euc_dist).
-#' @return A numeric vector containing the variances for each row of the original_data.
+#' @return A list containing two sub-lists:
+#'   - original_list: Contains the measures for the original_data without a reference_data.
+#'   - reference_list: Contains the measures for the original_data with the provided reference_data.
 #'
 #' @examples
-#' prediction_uncertainty(original_data = iris, k = 3)
+#' original_data <- as.data.frame(matrix(1:6, ncol = 2))
+#' reference_data <- as.data.frame(matrix(7:12, ncol = 2))
+#' prediction_all(original_data, k = 2, reference_data)
 #'
-#' @importFrom onehot onehot
+#' @export
+prediction_all = function(original_data, k, reference_data, dist = euc_dist){
+  # Calculate all the measures and store them in a list
+  reference_list = list()
+  reference_list$prediction_distance = prediction_distance(original_data, reference_data, dist)
+  reference_list$prediction_ambiguity = prediction_ambiguity(original_data, k, reference_data, dist)
+  reference_list$prediction_uncertainty = prediction_uncertainty(original_data, k, reference_data, dist)
+
+  original_list = list()
+  original_list$prediction_distance = prediction_distance(original_data, reference_data = NULL, dist)
+  original_list$prediction_ambiguity = prediction_ambiguity(original_data, k, reference_data = NULL, dist)
+  original_list$prediction_uncertainty = prediction_uncertainty(original_data, k, reference_data = NULL, dist)
+
+  return(list(original = original_list, reference = reference_list))
+}
+
+
+
+#-----------------------------------------------------------------
+
+#' Prediction Plot
+#'
+#' Plot the measures in the original data against measures of the same type in the reference data.
+#'
+#'
+#' @param prediction_all_output The output from the prediction_all function, containing the measures for original and reference data.
+#'
+#' @importFrom graphics plot legend lines par title
+#' @examples
+#' original_data <- as.data.frame(matrix(1:6, ncol = 2))
+#' reference_data <- as.data.frame(matrix(7:12, ncol = 2))
+#' preds = prediction_all(original_data, k = 2, reference_data)
+#' prediction_plot(preds)
+#'
+#' @export
+prediction_plot = function(prediction_all_output){
+  # plot the measures in original against measures of the same type in reference make par(mfrow = c(3,1)) before calling this function and revert it after calling this function
+  par(mfrow = c(3,1))
+
+  # cumulative sum of distances normalized by the sum of distances
+  y_scaler = function(data){
+    data = cumsum(sort(data))/sum(data)
+    # if data has any NaNs, replace the data with a sequence from 0 to 1, with length equal to the length of data
+    if(any(is.nan(data))) data = seq(0, 1, length.out = length(data))
+    return(data)
+  }
+
+  # prediction_distance
+  plot(sort(prediction_all_output$original$prediction_distance), y_scaler(prediction_all_output$original$prediction_distance), type = "l",  xlab = "Prediction distance", ylab = "Cumulative sum of prediction distance", xlim = c(0, max(prediction_all_output$original$prediction_distance, prediction_all_output$reference$prediction_distance)))
+  lines(sort(prediction_all_output$reference$prediction_distance), y_scaler(prediction_all_output$reference$prediction_distance), type = "l", col = "red")
+  legend("topleft", legend = c("Non overlapping sample", "Anonymized data"), col = c("black", "red"), lty = 1, cex = 0.8)
+  title("Prediction distance")
+
+  # prediction_ambiguity
+  plot(sort(prediction_all_output$original$prediction_ambiguity), y_scaler(prediction_all_output$original$prediction_ambiguity), type = "l",  xlab = "Prediction ambiguity", ylab = "Cumulative sum of prediction ambiguity", xlim = c(0, max(prediction_all_output$original$prediction_ambiguity, prediction_all_output$reference$prediction_ambiguity)))
+  lines(sort(prediction_all_output$reference$prediction_ambiguity), y_scaler(prediction_all_output$reference$prediction_ambiguity), type = "l", col = "red")
+  legend("topleft", legend = c("Non overlapping sample", "Anonymized data"), col = c("black", "red"), lty = 1, cex = 0.8)
+  title("Prediction ambiguity")
+
+  # prediction_uncertainty
+  plot(sort(prediction_all_output$original$prediction_uncertainty), y_scaler(prediction_all_output$original$prediction_uncertainty), type = "l",  xlab = "Prediction uncertainty", ylab = "Cumulative sum of prediction uncertainty", xlim = c(0, max(prediction_all_output$original$prediction_uncertainty, prediction_all_output$reference$prediction_uncertainty)))
+  lines(sort(prediction_all_output$reference$prediction_uncertainty), y_scaler(prediction_all_output$reference$prediction_uncertainty), type = "l", col = "red")
+  legend("topleft", legend = c("Non overlapping sample", "Anonymized data"), col = c("black", "red"), lty = 1, cex = 0.8)
+  title("Prediction uncertainty")
+
+  par(mfrow = c(1,1))
+}
+
+
+#-----------------------------------------------------------------
+
+
+
 prediction_uncertainty_legacy = function(original_data, k, reference_data = NULL, dist = euc_dist){
   # Prediction uncertainty gives the variation among the k best matches for each row of the original data in the reference data
   # for each row of the original data, find the k best matches in the reference data using the dist function
