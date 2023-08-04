@@ -35,7 +35,7 @@
 #' ldiverse_data <- makeLdiverse(data, c("age", "gender"), "disease", list(age = age_fun, gender = gender_fun), 2)
 #'}
 #' @export
-makeLdiverse_gpt <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymizationFunctions = NULL) {
+lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymizationFunctions = NULL) {
 
   # For runtime
   start_time <- Sys.time()

@@ -73,7 +73,6 @@ is_k_anonymous = function(df, quasi_id_cols, k) {
 #' # Apply make_k_anonymous function
 #' k_anon_df <- make_k_anonymous(df, c("age", "income"), list(age = age_fun, income = income_fun), 2)
 #'}
-#' @export
 make_k_anonymous <- function(df, quasi_id_cols, fun_list, k) {
 
   # Check if the data is already l-diverse

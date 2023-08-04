@@ -23,7 +23,6 @@
 #' diversityFunctions <- list(Species = function(x) "*", Petal.Width = function(x) "*")
 #' kAnonData <- kAnon(iris, quasiIdentifiers = c("Species", "Petal.Width"), diversityFunctions, k = 3)
 #'}
-#' @export
 kAnon_legacy <- function(data, quasiIdentifiers, diversityFunctions, k) {
 
   # For runtime

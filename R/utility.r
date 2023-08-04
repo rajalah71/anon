@@ -186,3 +186,26 @@ inverse_onehot = function(data, names, sample=FALSE){
 
   return(data)
 }
+
+
+#-------------------------------------------------------
+
+#' Inverse Logit Function
+#'
+#' Calculate the inverse logit function.
+#'
+#' @param x The input value.
+#' @return The result of the inverse logit function.
+#'
+#' @examples
+#' inverse_logit(0)
+#' inverse_logit(-2)
+#' inverse_logit(2)
+#' @export
+inverse_logit = function(x){
+  # inverse logit function
+  return(exp(x) / (1 + exp(x)))
+}
+
+
+
