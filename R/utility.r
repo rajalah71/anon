@@ -206,6 +206,3 @@ inverse_logit = function(x){
   # inverse logit function
   return(exp(x) / (1 + exp(x)))
 }
-
-
-

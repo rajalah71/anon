@@ -23,7 +23,7 @@ For example, the anonymizer function could perform a random
 permutation of rows to achieve anonymization.}
 
 \item{on_matrices}{A character string indicating which matrix to anonymize.
-Possible values are "U", "D", "V", "UD", and "DV".
+Possible values are "U", "V", "UD", and "DV".
 The default is "U". Note that the transposition is not
 shown here on V for ease of parametrization, but the
 modifications will be made on it's transpose.}

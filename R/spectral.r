@@ -312,7 +312,7 @@ spectral_legacy2 = function(data, anonymizer, on_matrices = "U", sample = FALSE,
 #'                    as numerical or not
 #'
 #' @param on_matrices A character string indicating which matrix to anonymize.
-#'                    Possible values are "U", "D", "V", "UD", and "DV".
+#'                    Possible values are "U", "V", "UD", and "DV".
 #'                    The default is "U". Note that the transposition is not
 #'                    shown here on V for ease of parametrization, but the
 #'                    modifications will be made on it's transpose.
@@ -378,9 +378,6 @@ spectral = function(data, anonymizer, on_matrices = "U", approx = TRUE, sample =
   if(on_matrices == "U"){
     u_anon = anonymizer(as.data.frame(svd$u))
     udv_anon = as.matrix(u_anon) %*% d_matrix %*% t(svd$v)
-  } else if(on_matrices == "D"){
-    d_anon = anonymizer(as.data.frame(d_matrix))
-    udv_anon = svd$u %*% as.matrix(d_anon) %*% t(svd$v)
   } else if(on_matrices == "V"){
     v_anon = anonymizer(as.data.frame(svd$v))
     udv_anon = svd$u %*% d_matrix %*% as.matrix(t(v_anon))
