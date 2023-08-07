@@ -22,28 +22,36 @@
 #' isLDiverse(iris, "Species", c("Petal.Width", "Sepal.Length"), 2)
 #'}
 #' @export
-isLDiverse <- function(data, sensitiveAttribute, quasiIdentifiers, l) {
-  # Group the data by the quasi-identifiers
-  groups <- split(data, data[, quasiIdentifiers], drop = TRUE)
+isLDiverse <- function(data, sensitiveAttributes, quasiIdentifiers, l) {
 
-  # Check if each group has at least l distinct values for the sensitive attribute
-  for (group in groups) {
-    if (length(unique(group[, sensitiveAttribute])) < l) {
-      return(FALSE)
+  for (sensitiveAttr in sensitiveAttributes) {
+    # Treat the remaining sensitive attributes as quasi-identifiers
+    quasiIdentifiersForSensitiveAttr <- setdiff(sensitiveAttributes, sensitiveAttr)
+    quasiIdentifiersForSensitiveAttr <- c(quasiIdentifiersForSensitiveAttr, quasiIdentifiers)
+
+    # Group the data by the quasi-identifiers
+    groups <- split(data, data[, quasiIdentifiersForSensitiveAttr], drop = TRUE)
+
+    # Check if each group has at least l distinct values for the sensitive attribute
+    for (group in groups) {
+      if (length(unique(group[, sensitiveAttr])) < l) {
+        return(FALSE)
+      }
     }
   }
 
-  # Return TRUE if all groups are l-diverse
+
+  # Return TRUE if all groups for all sensitive attributes are l-diverse
   return(TRUE)
 }
 
-#' Make a dataset l-diverse by applying diversity functions
+#' Make a dataset l-diverse by applying anonymization functions
 #'
 #' This function takes a dataset and applies a set of diversity functions to the specified
 #' quasi-identifier columns in order to achieve l-diversity with respect to the sensitive attributes.
 #' It checks if the dataset is already l-diverse and returns the dataset as is in that case.
-#' If not, it iteratively combines subsets of the dataset and applies the diversity functions
-#' until the desired level of l-diversity is achieved or it is not possible with the given functions.
+#' If not, it iteratively combines subsets of the dataset and applies the anonymity functions
+#' until the desired level of l-diversity is achieved.
 #'
 #' @param data The input dataset.
 #' @param sensitiveAttributes A character vector specifying the names of the sensitive attributes.
@@ -99,13 +107,17 @@ lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymiz
     }
   }
 
+  print(quasiIdentifiers)
+  print(sensitiveAttributes)
+  print(anonymizationFunctions)
+
   # Check if the column names of quasiIdentifiers match the anonymizationFunctions
   # if (!all(names(anonymizationFunctions) %in% quasiIdentifiers)) {
   #   stop("Column names of the quasi-identifier and anonymization functions do not match.")
   # }
 
   # Check if the dataset is already l-diverse
-  if (isLdiverse(data, quasiIdentifiers, sensitiveAttributes, l)) {
+  if (isLDiverse(data, quasiIdentifiers, sensitiveAttributes, l)) {
     print("The dataset is already l-diverse.")
     return(data)
   }
@@ -140,7 +152,7 @@ lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymiz
     }
 
     # If a given subset is already l-diverse no actions are taken
-    if(isLdiverse(subsets[[i]], quasiIdentifiers, sensitiveAttributes, l)){
+    if(isLDiverse(subsets[[i]], quasiIdentifiers, sensitiveAttributes, l)){
       #print("Block was already l-diverse")
       next
     }
@@ -166,7 +178,7 @@ lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymiz
       }
 
       # The subset may become l-diverse just by increasing its size, so no further actions are taken if so
-      if(isLdiverse(subsets[[i]], quasiIdentifiers, sensitiveAttributes, l)){
+      if(isLDiverse(subsets[[i]], quasiIdentifiers, sensitiveAttributes, l)){
         break
       }
 
@@ -180,7 +192,7 @@ lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymiz
         temp_subset[col] <- lapply(temp_subset[col], fun)
       }
 
-      if(isLdiverse(temp_subset, quasiIdentifiers, sensitiveAttributes, l)){
+      if(isLDiverse(temp_subset, quasiIdentifiers, sensitiveAttributes, l)){
 
         # If the subset COULD be made l-diverse, move onto the next block but do NOT commit the changes
         combine_more <- FALSE
@@ -201,7 +213,7 @@ lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymiz
       temp_subset[col] <- lapply(temp_subset[col], fun)
 
       # No more actions are taken than necessary to make the dataset l-diverse
-      if(isLdiverse(temp_subset, quasiIdentifiers, sensitiveAttributes, l)){
+      if(isLDiverse(temp_subset, quasiIdentifiers, sensitiveAttributes, l)){
         subsets[[j]] <- temp_subset
         break
       }
@@ -212,7 +224,7 @@ lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymiz
   lDiverseData <- do.call(rbind, subsets)
 
   # Just a final check
-  if (isLdiverse(lDiverseData, quasiIdentifiers, sensitiveAttributes, l)) {
+  if (isLDiverse(lDiverseData, quasiIdentifiers, sensitiveAttributes, l)) {
     shuffled <- lDiverseData[sample(nrow(lDiverseData)), ]
     rownames(shuffled) <- 1:nrow(shuffled)
     print(Sys.time() - start_time)
