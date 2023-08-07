@@ -370,7 +370,7 @@ spectral = function(data, anonymizer, on_matrices = "U", approx = TRUE, sample =
   }
 
   # Create a diagonal matrix from the singular values vector
-  d_matrix = diag(svd$d, nrow = ncol(svd$u), ncol = ncol(svd$v))
+  # d_matrix = diag(svd$d, nrow = ncol(svd$u), ncol = ncol(svd$v))
 
   print(d_matrix)
 
