@@ -33,4 +33,5 @@ df <- data.frame(
 
 is_l_diverse(df, c("age", "gender"), "disease", 2)
 
+
 }

@@ -24,4 +24,5 @@ This function divides a column into quantile bands based on the specified number
 \examples{
 data <- c(10, 20, 15, 25, 30)
 bands <- quantile_bands(data, 3, returnmean = FALSE, inclusive_tails = TRUE)
+
 }

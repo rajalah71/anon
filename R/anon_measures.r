@@ -387,4 +387,31 @@ prediction_uncertainty_legacy = function(original_data, k, reference_data = NULL
 
 }
 
+#-----------------------------------------------------------------
+
+#' Calculate the reidentification rate of a dataset after anonymization
+#'
+#' This function calculates the reidentification rate of a dataset after it has been anonymized. The function one-hot encodes both the original and reference datasets to enable distance calculations, scales the datasets to have mean 0 and standard deviation 1, and then finds the nearest row in the reference data for each row of the original data. The function returns the proportion of correct guesses.
+#'
+#' @param original_data A data frame containing the original dataset
+#' @param reference_data A data frame containing the reference dataset
+#' @importFrom onehot onehot
+#' @param dist An optional distance function to use for calculating distances between rows of the datasets. Defaults to the Euclidean distance function.
+#' @return A numeric value representing the proportion of correct guesses
+#' @export
+#' @examples
+#' original_data <- data.frame(x = c(1, 2, 3), y = c(4, 5, 6))
+#' reference_data <- data.frame(x = c(2, 3, 4), y = c(5, 6, 7))
+#' reidentification_rate(original_data, reference_data)
+reidentification_rate = function(original_data, reference_data, dist = euc_dist){
+  # Calculate distances for every row of the original data against the reference data
+  distances = distances(original_data, reference_data)
+
+  # Calculate the reidentification rate, i.e. the proportion of correct guesses, when taking the smallest distance as the best match
+  reidentification_rate = sum(apply(distances, 1, which.min) == seq(nrow(original_data)))/nrow(original_data)
+
+  return(reidentification_rate)
+
+
+}
 

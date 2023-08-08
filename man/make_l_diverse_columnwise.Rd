@@ -44,4 +44,5 @@ gender_fun <- function(x) "*"
 # Apply make_l_diverse function
 l_diverse_df <- make_l_diverse_columnwise(df, c("age", "gender"), "disease", list(age = age_fun, gender = gender_fun), 2)
 }
+
 }

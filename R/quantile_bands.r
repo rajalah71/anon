@@ -14,7 +14,7 @@
 #' @examples
 #' data <- c(10, 20, 15, 25, 30)
 #' bands <- quantile_bands(data, 3, returnmean = FALSE, inclusive_tails = TRUE)
-#' @export
+#'
 quantile_bands = function(column, n_bands = 1, returnmean = FALSE, inclusive_tails = TRUE) {
   n_data_points <- length(column)
 

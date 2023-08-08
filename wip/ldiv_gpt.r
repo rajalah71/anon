@@ -59,6 +59,9 @@ isLDiverse <- function(data, sensitiveAttributes, quasiIdentifiers, l) {
 #' @param anonymizationFunctions A named list of functions corresponding to the quasi-identifier columns.
 #'   Each function should take a vector as input and return a modified vector with the same length.
 #' @param l The desired minimum number of distinct values for each sensitive attribute within each group.
+#' @param k (Default 5) The minimum number of rows in an l diverse subset. Not stricly an l-diversity
+#'          requirement, but here to accomodate for Finnish law / customs on
+#'          anonymous data publishing.
 #'
 #'
 #' @return A dataset that is l-diverse with respect to the specified quasi-identifier columns and sensitive attributes,
@@ -95,8 +98,8 @@ lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymiz
     categorical_cols <- names(data)[!sapply(data, is.numeric)]
     quasiIdentifiers <- setdiff(names(col_cardinality)[order(-col_cardinality)], sensitiveAttributes)
   } else{
-    numeric_cols <- names(data[,quasiIdentifiers])[sapply(data[,quasiIdentifiers], is.numeric)]
-    categorical_cols <- names(data[,quasiIdentifiers])[!sapply(data[,quasiIdentifiers], is.numeric)]
+    numeric_cols <- names(data[,quasiIdentifiers, drop = FALSE])[sapply(data[,quasiIdentifiers], is.numeric)]
+    categorical_cols <- names(data[,quasiIdentifiers, drop = FALSE])[!sapply(data[,quasiIdentifiers], is.numeric)]
   }
 
   if (is.null(anonymizationFunctions)) {
@@ -115,15 +118,15 @@ lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymiz
   # print(anonymizationFunctions)
 
   # Check if the column names of quasiIdentifiers match the anonymizationFunctions
-  # if (!all(names(anonymizationFunctions) %in% quasiIdentifiers)) {
-  #   stop("Column names of the quasi-identifier and anonymization functions do not match.")
-  # }
+  if (!all(names(anonymizationFunctions) %in% quasiIdentifiers)) {
+    stop("Column names of the quasi-identifier and anonymization functions do not match.")
+  }
 
   # Check if the dataset is already l-diverse
-  # if (isLDiverse(data, sensitiveAttributes, quasiIdentifiers, l)) {
-  #   print("The dataset is already l-diverse.")
-  #   return(data)
-  # }
+  if (isLDiverse(data, sensitiveAttributes, quasiIdentifiers, l)) {
+    print("The dataset is already l-diverse.")
+    return(data)
+  }
 
   # Divide the dataset into a list of subsets based on quasi identifiers
   subsets <- split(data, data[, quasiIdentifiers], drop = TRUE)
@@ -246,5 +249,5 @@ lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymiz
   }
 }
 
-# obj = sdcMicro::createSdcObj(keyVars = 5, numVars = seq(4), pramVars = 5, sensibleVar = 5, dat = iris)
+#obj = sdcMicro::createSdcObj(keyVars = 5, numVars = seq(4), pramVars = 5, sensibleVar = 5, dat = iris)
 
