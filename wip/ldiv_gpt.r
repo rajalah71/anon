@@ -82,7 +82,7 @@ isLDiverse <- function(data, sensitiveAttributes, quasiIdentifiers, l) {
 #' ldiverse_data <- makeLdiverse(data, c("age", "gender"), "disease", list(age = age_fun, gender = gender_fun), 2)
 #'}
 #' @export
-lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymizationFunctions = NULL) {
+lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymizationFunctions = NULL, k=5) {
 
   # For runtime
   start_time <- Sys.time()
@@ -94,6 +94,9 @@ lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymiz
     numeric_cols <- names(data)[sapply(data, is.numeric)]
     categorical_cols <- names(data)[!sapply(data, is.numeric)]
     quasiIdentifiers <- setdiff(names(col_cardinality)[order(-col_cardinality)], sensitiveAttributes)
+  } else{
+    numeric_cols <- names(data[,quasiIdentifiers])[sapply(data[,quasiIdentifiers], is.numeric)]
+    categorical_cols <- names(data[,quasiIdentifiers])[!sapply(data[,quasiIdentifiers], is.numeric)]
   }
 
   if (is.null(anonymizationFunctions)) {
@@ -107,9 +110,9 @@ lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymiz
     }
   }
 
-  print(quasiIdentifiers)
-  print(sensitiveAttributes)
-  print(anonymizationFunctions)
+  # print(quasiIdentifiers)
+  # print(sensitiveAttributes)
+  # print(anonymizationFunctions)
 
   # Check if the column names of quasiIdentifiers match the anonymizationFunctions
   # if (!all(names(anonymizationFunctions) %in% quasiIdentifiers)) {
@@ -117,10 +120,10 @@ lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymiz
   # }
 
   # Check if the dataset is already l-diverse
-  if (isLDiverse(data, quasiIdentifiers, sensitiveAttributes, l)) {
-    print("The dataset is already l-diverse.")
-    return(data)
-  }
+  # if (isLDiverse(data, sensitiveAttributes, quasiIdentifiers, l)) {
+  #   print("The dataset is already l-diverse.")
+  #   return(data)
+  # }
 
   # Divide the dataset into a list of subsets based on quasi identifiers
   subsets <- split(data, data[, quasiIdentifiers], drop = TRUE)
@@ -152,7 +155,7 @@ lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymiz
     }
 
     # If a given subset is already l-diverse no actions are taken
-    if(isLDiverse(subsets[[i]], quasiIdentifiers, sensitiveAttributes, l)){
+    if(isLDiverse(subsets[[i]], sensitiveAttributes, quasiIdentifiers, l)){
       #print("Block was already l-diverse")
       next
     }
@@ -163,7 +166,8 @@ lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymiz
       # subsets[i] keeps increasing in size and subsets keep getting popped until subsets[i] can be made l-diverse given the quasi_ids and functions
       nearestSubsetIndex <- findNearestSubset(subsets[i], subsets, quasiIdentifiers)
       if(nearestSubsetIndex == 0){
-        stop("All subsets combined and no l-diversity obtained. Some sensitive attribute has less than l distinct values.")
+        message("All subsets combined and no l-diversity obtained.")
+        break
       }
 
       # Add the nearest subset to the current subset
@@ -177,8 +181,13 @@ lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymiz
         i <- i - 1
       }
 
+      # Check whether the subset has at least k rows. If not, increase size.
+      if(nrow(subsets[[i]])<k){
+        next
+      }
+
       # The subset may become l-diverse just by increasing its size, so no further actions are taken if so
-      if(isLDiverse(subsets[[i]], quasiIdentifiers, sensitiveAttributes, l)){
+      if(isLDiverse(subsets[[i]], sensitiveAttributes, quasiIdentifiers, l)){
         break
       }
 
@@ -192,7 +201,7 @@ lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymiz
         temp_subset[col] <- lapply(temp_subset[col], fun)
       }
 
-      if(isLDiverse(temp_subset, quasiIdentifiers, sensitiveAttributes, l)){
+      if(isLDiverse(temp_subset, sensitiveAttributes, quasiIdentifiers, l)){
 
         # If the subset COULD be made l-diverse, move onto the next block but do NOT commit the changes
         combine_more <- FALSE
@@ -213,7 +222,7 @@ lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymiz
       temp_subset[col] <- lapply(temp_subset[col], fun)
 
       # No more actions are taken than necessary to make the dataset l-diverse
-      if(isLDiverse(temp_subset, quasiIdentifiers, sensitiveAttributes, l)){
+      if(isLDiverse(temp_subset, sensitiveAttributes, quasiIdentifiers, l)){
         subsets[[j]] <- temp_subset
         break
       }
@@ -224,7 +233,7 @@ lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymiz
   lDiverseData <- do.call(rbind, subsets)
 
   # Just a final check
-  if (isLDiverse(lDiverseData, quasiIdentifiers, sensitiveAttributes, l)) {
+  if (isLDiverse(lDiverseData, sensitiveAttributes, quasiIdentifiers, l)) {
     shuffled <- lDiverseData[sample(nrow(lDiverseData)), ]
     rownames(shuffled) <- 1:nrow(shuffled)
     print(Sys.time() - start_time)
@@ -233,96 +242,9 @@ lDiv <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymiz
 
   else{
     print(Sys.time() - start_time)
-    stop("Something went wrong.")
+    stop("l-diversity could not be obtained.")
   }
 }
 
-
-
-#-------------------------------------------------------------------------------
-
-#' Perform l-Diversity on a dataset
-#'
-#' This function applies l-diversity to a dataset by dividing it into subsets
-#' based on quasi-identifiers and sensitive attributes, and modifying the data to achieve l-diversity
-#'
-#' @param data A data frame containing the sensitive data.
-#' @param k The desired level of k-anonymity.
-#' @param l The desired level of l-diversity.
-#' @param quasiIdentifiers A character vector specifying the column names of the quasi-identifiers (default: NULL).
-#' @param sensitiveAttributes A character vector specifying the column names of the sensitive attributes (default: NULL).
-#' @param anonymizationFunctions A named list of anonymization functions for each quasi-identifier column (default: NULL).
-#'
-#' @return A l-diverse data frame.
-#'
-#' @importFrom utils flush.console
-#'
-#' @details The `lDiversity` function applies l-diversity on the input dataset `data`
-#' by dividing it into subsets based on quasi-identifiers and sensitive attributes.
-#' The function modifies the data in each subset to achieve k-anonymity and l-diversity
-#' based on the anonymization functions provided in `anonymizationFunctions`.
-#'
-#' @examples
-#' \dontrun{
-#' data(iris)
-#' anonymizationFunctions <- list(Species = function(x) "*", Petal.Width = function(x) "*")
-#' lDiverseData <- lDiversity(iris, quasiIdentifiers = c("Species", "Petal.Width"), sensitiveAttributes = c("Sepal.Length", "Sepal.Width"), anonymizationFunctions, k = 3, l = 2)
-#'}
-#' @export
-lDiversity <- function(data, k, l, quasiIdentifiers = NULL, sensitiveAttributes = NULL, anonymizationFunctions = NULL) {
-
-  # For runtime
-  start_time <- Sys.time()
-
-  # If quasiIdentifiers and anonymizationFunctions are not provided, calculate the cardinality of each column
-  # and identify numeric and categorical columns for default behavior.
-  if (is.null(quasiIdentifiers) || is.null(anonymizationFunctions)) {
-    col_cardinality <- sapply(data, function(x) length(unique(x)))
-    numeric_cols <- names(data)[sapply(data, is.numeric)]
-    categorical_cols <- names(data)[!sapply(data, is.numeric)]
-  }
-
-  # Use default behavior if quasiIdentifiers and anonymizationFunctions are not provided
-  if (is.null(quasiIdentifiers)) {
-    quasiIdentifiers <- names(col_cardinality)[order(-col_cardinality)]
-  }
-
-  if (is.null(anonymizationFunctions)) {
-    anonymizationFunctions <- list()
-    for (col in quasiIdentifiers) {
-      if (col %in% numeric_cols) {
-        anonymizationFunctions[[col]] <- function(x) round(x, 2)
-      } else {
-        anonymizationFunctions[[col]] <- function(x) "*"
-      }
-    }
-  }
-
-  # If sensitiveAttributes is not provided, use all columns except quasiIdentifiers as sensitiveAttributes
-  if (is.null(sensitiveAttributes)) {
-    sensitiveAttributes <- setdiff(names(data), quasiIdentifiers)
-  }
-
-  # Loop through each sensitive attribute
-  for (sensitiveAttr in sensitiveAttributes) {
-    # Treat the remaining sensitive attributes as quasi-identifiers
-    quasiIdentifiersForSensitiveAttr <- setdiff(sensitiveAttributes, sensitiveAttr)
-    quasiIdentifiersForSensitiveAttr <- c(quasiIdentifiersForSensitiveAttr, quasiIdentifiers)
-
-    # Perform k-anonymization
-    kAnonData <- kAnon(data, k, quasiIdentifiersForSensitiveAttr, anonymizationFunctions)
-
-    # Check if the resulting dataset is l-diverse for the current sensitive attribute
-    if (!isLDiverse(kAnonData, sensitiveAttr, quasiIdentifiersForSensitiveAttr, l)) {
-      stop(paste0("Dataset is not ", l, "-diverse for sensitive attribute '", sensitiveAttr, "'"))
-    }
-  }
-
-  # Print runtime
-  end_time <- Sys.time()
-  print(paste0("Runtime: ", end_time - start_time))
-
-  # Return l-diverse data
-  return(kAnonData)
-}
+# obj = sdcMicro::createSdcObj(keyVars = 5, numVars = seq(4), pramVars = 5, sensibleVar = 5, dat = iris)
 
