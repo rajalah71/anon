@@ -251,9 +251,9 @@ lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, an
     # print(Sys.time() - start_time)
     # return(shuffled)
     if(shuffle == TRUE){
-      return(shuffle(kAnonData))
+      return(shuffle(lDiverseData))
     } else{
-      return(kAnonData)
+      return(lDiverseData)
     }
   }
 
