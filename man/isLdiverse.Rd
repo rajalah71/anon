@@ -32,5 +32,4 @@ based on the quasi-identifiers specified in `quasiIdentifiers` and the desired l
 data(iris)
 isLDiverse(iris, "Species", c("Petal.Width", "Sepal.Length"), 2)
 }
-
 }

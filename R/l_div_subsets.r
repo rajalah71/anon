@@ -21,7 +21,7 @@
 #' data(iris)
 #' isLDiverse(iris, "Species", c("Petal.Width", "Sepal.Length"), 2)
 #'}
-#'
+#' @export
 isLDiverse <- function(data, sensitiveAttributes, quasiIdentifiers, l) {
 
   for (sensitiveAttr in sensitiveAttributes) {
@@ -62,6 +62,10 @@ isLDiverse <- function(data, sensitiveAttributes, quasiIdentifiers, l) {
 #' @param k (Default 5) The minimum number of rows in an l diverse subset. Not stricly an l-diversity
 #'          requirement, but here to accomodate for Finnish law / customs on
 #'          anonymous data publishing.
+#' @param shuffle (Default TRUE) A parameter which determines whether the data
+#'                  will be shuffled or not before returning. Will give warning
+#'                  uf FALSE, as no data should be released without shuffling.
+#'                  For diagnostic use, or for calculating reidentification rate.
 #'
 #'
 #' @return A dataset that is l-diverse with respect to the specified quasi-identifier columns and sensitive attributes,
@@ -85,10 +89,15 @@ isLDiverse <- function(data, sensitiveAttributes, quasiIdentifiers, l) {
 #' ldiverse_data <- makeLdiverse(data, c("age", "gender"), "disease", list(age = age_fun, gender = gender_fun), 2)
 #'}
 #' @export
-lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymizationFunctions = NULL, k=5) {
+lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymizationFunctions = NULL, k=5, shuffle = TRUE) {
 
   # For runtime
   start_time <- Sys.time()
+
+  # Do not release unshuffled data. For diagnostics only.
+  if(shuffle == FALSE){
+    warning("Shuffle is FALSE, do not release data.")
+  }
 
   # If quasiIdentifiers are not provided, calculate the cardinality of each column
   # and identify numeric and categorical columns for default behavior.
@@ -237,10 +246,15 @@ lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, an
 
   # Just a final check
   if (isLDiverse(lDiverseData, sensitiveAttributes, quasiIdentifiers, l)) {
-    shuffled <- lDiverseData[sample(nrow(lDiverseData)), ]
-    rownames(shuffled) <- 1:nrow(shuffled)
-    print(Sys.time() - start_time)
-    return(shuffled)
+    # shuffled <- lDiverseData[sample(nrow(lDiverseData)), ]
+    # rownames(shuffled) <- 1:nrow(shuffled)
+    # print(Sys.time() - start_time)
+    # return(shuffled)
+    if(shuffle == TRUE){
+      return(shuffle(kAnonData))
+    } else{
+      return(kAnonData)
+    }
   }
 
   else{

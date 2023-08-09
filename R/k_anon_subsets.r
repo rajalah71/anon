@@ -70,12 +70,13 @@ is_k_anonymous = function(data, quasi_id_cols, k) {
 #' @export
 kAnon <- function(data, k, quasiIdentifiers = NULL, anonymizationFunctions = NULL, shuffle = TRUE) {
 
+  # For runtime
+  start_time <- Sys.time()
+
+  # Do not release unshuffled data. For diagnostics only.
   if(shuffle == FALSE){
     warning("Shuffle is FALSE, do not release data.")
   }
-
-  # For runtime
-  start_time <- Sys.time()
 
   # If quasiIdentifiers and anonymizationFunctions are not provided, calculate the cardinality of each column
   # and identify numeric and categorical columns for default behavior.
