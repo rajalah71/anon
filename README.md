@@ -22,7 +22,8 @@ The package contains (4 at the moment) functions to anonymize your data, as well
 To make a dataset _k_ anonymouys:
 
 
-data = data("iris")\\
+data = data("iris")
+
 kAnon(data, k=5) 
 
 This uses all columns as quasi identifiers and operates on the with mean on numeric columns and with combining on categorical ones.
@@ -31,7 +32,8 @@ You can define your own functions if you want, and on what columns the function 
 
 ### _l_-diversity
 
-data = data("iris")\\
+data = data("iris")
+
 lDiversity(data, sensitiveAtrributes = "Species", l=2) 
 
 ### _t_-closeness
@@ -40,14 +42,16 @@ TODO
 
 ### RSA
 
-data = data("iris")\\
+data = data("iris")
+
 encrypt(data)
 
 Encrypts the data using a new RSA key = 2048 bits by default. 
 
 ### Spectral anonymization
 
-data = data("iris") \\
+data = data("iris")
+
 spectral(data, cell_swap)
 
 Anonymizes data on the spectral basis provided by SVD. Supports any anoymization function $f: R^{a \times b} \to R^{a \times b}$.
