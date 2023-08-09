@@ -66,13 +66,11 @@ emptydf = function(data){
 #' shuffled_data
 #' @export
 shuffle = function(data){
-  # return a random permutation of each column of the data
-  for(i in seq(ncol(data))){
-    data[,i] = sample(data[,i])
-  }
+  # rshuffle the rows of the data
+  data = data[sample(nrow(data)),]
+  rownames(data) = seq(nrow(data))
 
   return(data)
-
 }
 
 #---------------------------
