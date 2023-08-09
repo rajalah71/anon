@@ -332,8 +332,6 @@ column_reordered = function(data, names, indicies){
     # get the location of the column
     location = match(names[i], names(data))
 
-    print(c(location, indicies[i]))
-
     # if the location is not the same as the index, reorder the data frame
     if(location != indicies[i]){
       tobereplaced = data[, indicies[i]]

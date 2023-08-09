@@ -326,6 +326,8 @@ spectral_legacy2 = function(data, anonymizer, on_matrices = "U", sample = FALSE,
 #' @export
 spectral = function(data, anonymizer, on_matrices = "U", approx = TRUE, sample = FALSE, cat_as_num = FALSE){
 
+  colnames = colnames(data)
+
   # One-hot encode the data using the 'onehot' package
   oh = onehot(data, stringsAsFactors = TRUE, max_levels = Inf)
 
@@ -417,7 +419,9 @@ spectral = function(data, anonymizer, on_matrices = "U", approx = TRUE, sample =
 
   # Return the categorical values as categorical if wanted, using sampling if TRUE
   if(!cat_as_num){
-    return(inverse_onehot(decentered_anon, names, indicies, sample))
+    inverse = inverse_onehot(decentered_anon, names, indicies, sample)
+    colnames(inverse) = colnames
+    return(inverse)
   }
 
   # Return the decentered and anonymized data
