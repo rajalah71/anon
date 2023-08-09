@@ -145,11 +145,10 @@ rlaplace <- function(n, location, scale) {
 #'                in the one hot encoded data given. Works well with
 #'                "onehot" package.
 #' @param sample Logical: Whether to sample from the numerical columns or take the max
-#' @param indicies The indicies of the categorical variables in the original data.
 #' @return The original data with categorical variables restored from one-hot encoding.
 #'
 #' @export
-inverse_onehot = function(data, names, indicies, sample=FALSE){
+inverse_onehot = function(data, names, sample=FALSE){
   # the inverse operation to one hot encoding, i.e. from one hot encoded data to the original data
   # names: the names of the categorical variables in the original data
   # sample: if TRUE, the value will be sampled from the one_hot_columns instead of choosing the maximum value
@@ -182,9 +181,6 @@ inverse_onehot = function(data, names, indicies, sample=FALSE){
     # replace the numerical column with the combined categorical column
     data[, name] = combined_column
   }
-
-  # order the columns in the original order using colmn reordered
-  data = column_reordered(data, names, indicies)
 
   return(data)
 }
@@ -281,67 +277,3 @@ combine_lowest_classes <- function(column, k=1) {
   return(column)
 }
 
-#-------------------------------------------------------
-
-#' Column Inserter
-#'
-#' Insert a column into a data frame at a specified index.
-#'
-#' @param data The data frame to insert the column into.
-#' @param column The column to insert.
-#' @param colname The name of the column to insert.
-#' @param index The index at which to insert the column.
-#' @return The data frame with the new column inserted at the specified index.
-#'
-column_inserter = function(data, column, colname, index){
-  # insert a column into a data frame at a specified index
-  # data: the data frame to insert the column into
-  # column: the column to insert
-  # colname: the name of the column to insert
-  # index: the index at which to insert the column
-
-  # get the column names of the data frame
-  colnames = names(data)
-
-  # insert the column name at the specified index
-  colnames = c(colnames[1:index-1], colname, colnames[(index):length(colnames)])
-
-  # insert the column at the specified index
-  data = cbind(data[, 1:(index - 1)], column, data[, index:length(colnames(data))])
-
-  # set the column names
-  names(data) = colnames
-
-  return(data)
-}
-
-#-------------------------------------------------------
-
-#' Column Reordered
-#'
-#' Reorder the data frame columns according to the specified column names and indices.
-#'
-#' @param data The data frame to reorder.
-#' @param names The column names in the desired order.
-#' @param indicies The target indices for the corresponding column names.
-#' @return The data frame with columns reordered as specified.
-#'
-column_reordered = function(data, names, indicies){
-  # reorder the data frame so that names_location[i] column will be at index indicies[i] for all i
-  for(i in seq_along(names)){
-    # get the location of the column
-    location = match(names[i], names(data))
-
-    print(c(location, indicies[i]))
-
-    # if the location is not the same as the index, reorder the data frame
-    if(location != indicies[i]){
-      tobereplaced = data[, indicies[i]]
-      data[, indicies[i]] = data[, location]
-      data[, location] = tobereplaced
-    }
-  }
-
- return(data)
-
-}

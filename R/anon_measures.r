@@ -296,19 +296,19 @@ prediction_plot = function(prediction_all_output){
   # prediction_distance
   plot(sort(prediction_all_output$original$prediction_distance), y_scaler(prediction_all_output$original$prediction_distance), type = "l",  xlab = "Prediction distance", ylab = "Cumulative sum of prediction distance", xlim = c(0, max(prediction_all_output$original$prediction_distance, prediction_all_output$reference$prediction_distance)))
   lines(sort(prediction_all_output$reference$prediction_distance), y_scaler(prediction_all_output$reference$prediction_distance), type = "l", col = "red")
-  legend("topleft", legend = c("Non overlapping sample", "Anonymized data"), col = c("black", "red"), lty = 1, cex = 0.8, bg = "transparent")
+  legend("topleft", legend = c("Non overlapping sample", "Anonymized data"), col = c("black", "red"), lty = 1, cex = 0.8)
   title("Prediction distance")
 
   # prediction_ambiguity
   plot(sort(prediction_all_output$original$prediction_ambiguity), y_scaler(prediction_all_output$original$prediction_ambiguity), type = "l",  xlab = "Prediction ambiguity", ylab = "Cumulative sum of prediction ambiguity", xlim = c(0, max(prediction_all_output$original$prediction_ambiguity, prediction_all_output$reference$prediction_ambiguity)))
   lines(sort(prediction_all_output$reference$prediction_ambiguity), y_scaler(prediction_all_output$reference$prediction_ambiguity), type = "l", col = "red")
-  legend("topleft", legend = c("Non overlapping sample", "Anonymized data"), col = c("black", "red"), lty = 1, cex = 0.8, bg = "transparent")
+  legend("topleft", legend = c("Non overlapping sample", "Anonymized data"), col = c("black", "red"), lty = 1, cex = 0.8)
   title("Prediction ambiguity")
 
   # prediction_uncertainty
   plot(sort(prediction_all_output$original$prediction_uncertainty), y_scaler(prediction_all_output$original$prediction_uncertainty), type = "l",  xlab = "Prediction uncertainty", ylab = "Cumulative sum of prediction uncertainty", xlim = c(0, max(prediction_all_output$original$prediction_uncertainty, prediction_all_output$reference$prediction_uncertainty)))
   lines(sort(prediction_all_output$reference$prediction_uncertainty), y_scaler(prediction_all_output$reference$prediction_uncertainty), type = "l", col = "red")
-  legend("topleft", legend = c("Non overlapping sample", "Anonymized data"), col = c("black", "red"), lty = 1, cex = 0.8, bg = "transparent")
+  legend("topleft", legend = c("Non overlapping sample", "Anonymized data"), col = c("black", "red"), lty = 1, cex = 0.8)
   title("Prediction uncertainty")
 
   par(mfrow = c(1,1))
