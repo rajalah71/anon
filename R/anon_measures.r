@@ -318,77 +318,6 @@ prediction_plot = function(prediction_all_output){
 #-----------------------------------------------------------------
 
 
-
-prediction_uncertainty_legacy = function(original_data, k, reference_data = NULL, dist = euc_dist){
-  # Prediction uncertainty gives the variation among the k best matches for each row of the original data in the reference data
-  # for each row of the original data, find the k best matches in the reference data using the dist function
-
-  # If the reference data is null, the function performs leave-one-out cross-validation to calculate the distance between each row of the original data against the rest of the original data
-
-  # onehot encode the datasets to enable distance calculations
-  original_data = predict(onehot(original_data, stringsAsFactors = TRUE, max_levels = Inf), original_data)
-  cat("pass\n")
-  if(!is.null(reference_data)) reference_data = predict(onehot(reference_data, stringsAsFactors = TRUE, max_levels = Inf), reference_data)
-
-  # scale the datasets to have mean 0 and standard deviation 1
-  original_data = scale(original_data)
-  if(!is.null(reference_data)) reference_data = scale(reference_data)
-
-  # empty vector to store the variances
-  variances = rep_len(NA, nrow(original_data))
-
-  cat("pass2\n")
-
-  # find the k nearest rows in the reference data for each row of the original data. If the reference data is null, the function performs leave-one-out cross-validation to calculate the distance between each row of the original data against the rest of the original data
-  if(!is.null(reference_data)){
-    for(i in seq(nrow(original_data))){
-      k_nearest = as.data.frame(matrix(NA, k, ncol(original_data)))
-
-      # add rows of the reference data to the k_nearest dataframe if they are closer than the current furthest row
-      for(j in seq(nrow(reference_data))){
-        if(j <= k){
-          k_nearest[j,] = reference_data[j,]
-        } else {
-          if(dist(original_data[i,], reference_data[j,]) < max(distances(k_nearest, original_data[i,], dist = dist))){
-            k_nearest[which.max(distances(k_nearest, original_data[i,], dist = dist)),] = reference_data[j,]
-          }
-        }
-      }
-
-      # calculate the variance of the columns of the k nearest rows and take the mean of them
-      variances[i] = mean(apply(k_nearest, 2, var))
-
-    }
-  } else{
-    for(i in seq(nrow(original_data))){
-      k_nearest = as.data.frame(matrix(NA, k, ncol(original_data)))
-
-      # add rows of the reference data to the k_nearest dataframe if they are closer than the current furthest row
-      for(j in seq(nrow(original_data))){
-        # skip the row if it is the same as the row of the original data
-        if(j == i) next
-
-        if(anyNA(k_nearest)){
-          k_nearest[j,] = original_data[j,]
-        } else {
-          if(dist(original_data[i,], original_data[j,]) < max(distances(k_nearest, original_data[i,], dist = dist))){
-            k_nearest[which.max(distances(k_nearest, original_data[i,], dist = dist)),] = original_data[j,]
-          }
-        }
-      }
-
-      # calculate the variance of the columns of the k nearest rows and take the mean of them
-      variances[i] = mean(apply(k_nearest, 2, var))
-
-    }
-  }
-
-  return(variances)
-
-}
-
-#-----------------------------------------------------------------
-
 #' Calculate the reidentification rate of a dataset after anonymization
 #'
 #' This function calculates the reidentification rate of a dataset after it has been anonymized. The function one-hot encodes both the original and reference datasets to enable distance calculations, scales the datasets to have mean 0 and standard deviation 1, and then finds the nearest row in the reference data for each row of the original data. The function returns the proportion of correct guesses.
@@ -405,11 +334,12 @@ prediction_uncertainty_legacy = function(original_data, k, reference_data = NULL
 #' reidentification_rate(original_data, reference_data)
 reidentification_rate = function(original_data, reference_data, dist = euc_dist){
   # Calculate distances for every row of the original data against the reference data
-  distances = distances(original_data, reference_data)
+  distances = distances(original_data, reference_data, dist)
 
   # Calculate the reidentification rate, i.e. the proportion of correct guesses, when taking the smallest distance as the best match
   reidentification_rate = sum(apply(distances, 1, which.min) == seq(nrow(original_data)))/nrow(original_data)
 
+  cat("Reidentification rate of anonymous data:",  reidentification_rate, ", versus pure guessing (approximately):", 1/nrow(original_data), ", ratio of:",reidentification_rate*nrow(original_data) ,"\n")
   return(reidentification_rate)
 
 

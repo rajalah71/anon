@@ -4,7 +4,13 @@
 \alias{kAnon}
 \title{Perform k-Anonymization on a dataset}
 \usage{
-kAnon(data, k, quasiIdentifiers = NULL, anonymizationFunctions = NULL)
+kAnon(
+  data,
+  k,
+  quasiIdentifiers = NULL,
+  anonymizationFunctions = NULL,
+  shuffle = TRUE
+)
 }
 \arguments{
 \item{data}{A data frame containing the sensitive data.}
@@ -14,6 +20,11 @@ kAnon(data, k, quasiIdentifiers = NULL, anonymizationFunctions = NULL)
 \item{quasiIdentifiers}{A character vector specifying the column names of the quasi-identifiers (default: NULL).}
 
 \item{anonymizationFunctions}{A named list of anonymization functions for each quasi-identifier column (default: NULL).}
+
+\item{shuffle}{(Default TRUE) A parameter which determines whether the data
+will be shuffled or not before returning. Will give warning
+uf FALSE, as no data should be released without shuffling.
+For diagnostic use, or for calculating reidentification rate.}
 }
 \value{
 A k-anonymous data frame.

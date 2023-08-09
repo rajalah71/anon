@@ -370,9 +370,7 @@ spectral = function(data, anonymizer, on_matrices = "U", approx = TRUE, sample =
   }
 
   # Create a diagonal matrix from the singular values vector
-  # d_matrix = diag(svd$d, nrow = ncol(svd$u), ncol = ncol(svd$v))
-
-  print(d_matrix)
+  d_matrix = diag(svd$d, nrow = ncol(svd$u), ncol = ncol(svd$v))
 
   # Anonymize the specified matrix from the SVD using the provided anonymization function
   if(on_matrices == "U"){
@@ -419,105 +417,6 @@ spectral = function(data, anonymizer, on_matrices = "U", approx = TRUE, sample =
   # Return the decentered and anonymized data
   return(decentered_anon)
 }
-
-#---------------------------------------
-
-#' Anonymize a data frame using spectral decomposition.
-#'
-#' This function takes a data frame as input and performs spectral decomposition
-#' to anonymize the data by altering its left singular vectors. The anonymization
-#' is done by applying a user-defined anonymizer function to vectors.
-#' The function then reconstructs the decentered, anonymized data
-#' and returns it as a new data frame.
-#'
-#' @param data A data frame to be anonymized and decentered.
-#'
-#' @param anonymizer A function used to anonymize the U matrix from singluar
-#'                    value decomposition. The function should
-#'                   take a data frame as input and return an anonymized data frame.
-#'                   For example, the anonymizer function could perform a random
-#'                   permutation of rows to achieve anonymization.
-#'
-#' @param sample Logical: Whether to sample from the numerical columns
-#'                or take the max
-#'
-#' @param cat_as_num Logical: Whether categorical variables should be returned
-#'                    as numerical or not
-#'
-#' @param on_matrices A character string indicating which matrix to anonymize.
-#'                    Possible values are "U", "D", "V", "UD", and "DV".
-#'                    The default is "U".
-#'
-#' @return A new data frame containing the anonymized data.
-#'
-#' @importFrom onehot onehot
-#'
-spectral_short = function(data, anonymizer, on_matrices = "U", sample = FALSE, cat_as_num = FALSE){
-
-  # One-hot encode the data using the 'onehot' package
-  oh = predict(onehot(data, stringsAsFactors = TRUE, max_levels = Inf), data)
-
-  # Identify and store the names of factor columns
-  names = colnames(data)[sapply(data, is.factor)]
-
-  # Convert categorical columns to {-1, 1} encoding
-  oh[, names] = 2 * as.matrix(oh[, names]) - 1
-
-  # Center the data by subtracting the column means from each column
-  centered = scale(oh, center = TRUE, scale = FALSE)
-
-  # Perform Singular Value Decomposition (SVD) on the centered data, M = UDV'
-  svd = svd(centered)
-
-  # Anonymize the specified matrix from the SVD using the provided anonymization function
-  matrices = list(U = svd$u, D = diag(svd$d), V = svd$v, UD = svd$u %*% diag(svd$d), DV = diag(svd$d) %*% t(svd$v))
-  matrices[[on_matrices]] = anonymizer(as.data.frame(matrices[[on_matrices]]))
-  udv_anon = Reduce("%*%", matrices)
-
-  # Reconstruct the anonymized centered data using UDV' form
-  data_anon = as.data.frame(udv_anon)
-  colnames(data_anon) = colnames(data)
-
-  # Add the column means back to the anonymized data to decenter it
-  decentered_anon = scale(data_anon, center = means(oh), scale = FALSE)
-
-  # Normalize the factor columns using softmax
-  decentered_anon[, names] = t(apply(decentered_anon[, names], 1, function(x) softmax(x)))
-
-  # Return the categorical values as categorical if wanted, using sampling if TRUE
-  if(!cat_as_num){
-    return(inverse_onehot(decentered_anon, names, sample))
-  }
-
-  # Return the decentered and anonymized data
-  return(decentered_anon)
-}
-
-#---------------------------------------
-
-onehot_helper = function(data){
-  oh = onehot::onehot(data, stringsAsFactors = TRUE, max_levels = Inf)
-
-  names = c()
-
-  for(item in oh){
-    if(item$type == "factor") names = append(names, item$name)
-  }
-
-  encoded = predict(oh, data)
-
-  for(name in names){
-    cols = startsWith(colnames(encoded), name)
-    workingset = encoded[,cols]
-    #print(workingset)
-    withnegatives = (t(apply(workingset, 1, function(x) ifelse(x == 0, -1, 1))))
-    #print(withnegatives)
-    encoded[,cols] = withnegatives
-  }
-
-  return(encoded)
-}
-
 
 
 

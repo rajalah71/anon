@@ -4,7 +4,7 @@
 #' based on the quasi-identifiers and the desired level of l-diversity
 #'
 #' @param data A data frame containing the sensitive data.
-#' @param sensitiveAttribute A character vector specifying the column name of the sensitive attribute.
+#' @param sensitiveAttributes A character vector specifying the column name of the sensitive attribute.
 #' @param quasiIdentifiers A character vector specifying the column names of the quasi-identifiers.
 #' @param l The desired level of l-diversity.
 #'
@@ -249,195 +249,6 @@ lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, an
   }
 }
 
-#-------------------------------------------
-
-# Define the modified l_diverse function
-isLdiverse_temp = function(df, quasi_id_cols, sensitive_cols, l) {
-  # Load the required libraries
-
-  #Silence the summary function message
-  #options(dplyr.summarise.inform = FALSE)
-
-  # Group the data by the quasi-identifier and sensitive columns
-  grouped_df = df[, c(quasi_id_cols, sensitive_cols)] %>% group_by(across(all_of(quasi_id_cols)))
-  print(grouped_df)
-
-  # Count the number of distinct rows in each group
-  count_df = grouped_df %>% summarise(across(all_of(sensitive_cols), n_distinct))
-  print(count_df)
-
-  # Check if all groups have at least l rows
-  all(count_df[, sensitive_cols] >= l)
-}
-
-#------------------
-
-
-isLdiverse_legacy = function(df, quasi_id_cols, sensitive_cols, l) {
-
-  # Iterate over sensitive columns, considering one of them as a sensitive attribute and the rest as quasi identifiers
-  for (i in seq_along(sensitive_cols)){
-    #print(sensitive_cols[i])
-
-    # Combine the quasi ids and the rest of the sensitive attributes to be the new quasi ids
-    quasi_id_cols = c(quasi_id_cols, sensitive_cols[-i])
-
-    # Consider one of the sensitive attributes at time
-    sensitive = sensitive_cols[i]
-
-    # Group the data by the quasi-identifier and sensitive columns
-    grouped_df = df[, c(quasi_id_cols, sensitive)] %>% group_by(across(all_of(quasi_id_cols)))
-    #print(grouped_df)
-
-    # Count the number of distinct rows in each group
-    count_df = grouped_df %>% summarise(across(all_of(sensitive), n_distinct))
-    #print(count_df)
-
-    # Check if all groups have at least l rows
-    if(!all(count_df[, sensitive] >= l)){
-      return(FALSE)
-    }
-  }
-
-  return(TRUE)
-
-}
-
-#--------------
-
-
-
-makeLdiverse_legacy <- function(data, quasiIdentifiers, sensitiveAttributes, diversityFunctions, l) {
-
-  # For runtime
-  start_time <- Sys.time()
-
-  # Check if the column names of quasiIdentifiers match the diversityFunctions
-  if (!all(names(diversityFunctions) %in% quasiIdentifiers)) {
-    stop("Column names of the quasi-identifier and diversity functions do not match.")
-  }
-
-  # Check if the dataset is already l-diverse
-  if (isLdiverse(data, quasiIdentifiers, sensitiveAttributes, l)) {
-    print("The dataset is already l-diverse.")
-    return(data)
-  }
-
-  # Divide the dataset into a list of subsets based on quasi identifiers
-  subsets <- split(data, data[, quasiIdentifiers], drop = TRUE)
-
-  # Iteration counter
-  print_counter = 0
-
-  # For determining maximun iterations
-  subset_length = length(subsets)
-
-  # For indexing.
-  i = 0
-
-  # Iterate over subsets
-  # cat("Iterating over all subsets:", subset_length, " iterations at most. \n" )
-
-  while (TRUE) {
-    # For printing the progress
-    print_counter = print_counter + 1
-    cat("Iteration:", print_counter, "/", subset_length, "\r")
-    flush.console()
-
-    # Increase indexing
-    i = i + 1
-
-    # If the length of the subset is smaller than the current index, all blocks have been accounter for
-    if (i > length(subsets)){
-      break
-    }
-
-    # If a given subset is already l-diverse no actions are taken
-    if(isLdiverse(subsets[[i]], quasiIdentifiers, sensitiveAttributes, l)){
-      #print("BLock was alread l-diverse")
-      next
-    }
-
-    # Logical variable that determines how long subsets will be combined to object subsets[[i]]
-    combine_more = TRUE
-    while (combine_more) {
-      # subsets[i] keeps increasing in size and subsets keep getting popped until subsets[i] can be mande l-diverse given the quasi_ids and functions
-      nearestSubsetIndex <- findNearestSubset(subsets[i], subsets, quasiIdentifiers)
-      if(nearestSubsetIndex == 0){
-        stop("All subsets combined and no l-diversity obtained")
-      }
-
-      # Add the nearest subset to the current subset
-      subsets[[i]] <- rbind(subsets[[nearestSubsetIndex]], subsets[[i]])
-
-      # Remove the added subset from subsets
-      subsets = subsets[-nearestSubsetIndex]
-
-      # If we were to remove a previous subset we need to adjust the indexing
-      if(nearestSubsetIndex < i){
-        i = i - 1
-      }
-
-      # The subset may become l-diverse just by increasing its size, so no further actions are taken if so
-      if(isLdiverse(subsets[[i]], quasiIdentifiers, sensitiveAttributes, l)){
-        break
-      }
-
-      # Temporary subset as dataframe to modify
-      temp_subset = subsets[[i]]
-
-      # Apply diversity functions in the order the columns were given, iteratively until the subset becomes l-diverse
-      for (u in seq_along(diversityFunctions)) {
-        col = quasiIdentifiers[u]
-        fun = diversityFunctions[[col]]
-        temp_subset[col] <- lapply(temp_subset[col], fun)
-      }
-
-      if(isLdiverse(temp_subset, quasiIdentifiers, sensitiveAttributes, l)){
-
-        # If the subset COULD be made l-diverse, move onto next block but do NOT commit the changes
-        combine_more = FALSE
-      }
-    }
-  }
-
-  # Finally actually apply the diversity functions to the subsets and return them as a dataframe
-  for(j in seq_along(subsets)){
-
-    # Working subset
-    temp_subset = subsets[[j]]
-
-    # Iterate over diversity functions
-    for (s in seq_along(diversityFunctions)) {
-      col = quasiIdentifiers[s]
-      fun = diversityFunctions[[col]]
-      temp_subset[col] <- lapply(temp_subset[col], fun)
-
-      # No more actions are taken than necessary to make the dataset l-diverse
-      if(isLdiverse(temp_subset, quasiIdentifiers, sensitiveAttributes, l)){
-        subsets[[j]] = temp_subset
-        break
-      }
-    }
-  }
-
-
-  # Combine the l-diverse subsets into a single dataset
-  lDiverseData <- do.call(rbind, subsets)
-
-  # Just a final check
-  if (isLdiverse(lDiverseData, quasiIdentifiers, sensitiveAttributes, l)) {
-    shuffled = lDiverseData[sample(nrow(lDiverseData)), ]
-    rownames(shuffled) = 1:nrow(shuffled)
-    print(Sys.time() - start_time)
-    return(shuffled)
-  }
-
-  else{
-    print(Sys.time() - start_time)
-    stop("Something went wrong.")
-  }
-}
 
 
 #---------------------
@@ -524,7 +335,7 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
     return(0)
   }
 
-  as_numerical_both = predict(onehot::onehot(both_sets, stringsAsFactors = TRUE, max_levels = 20), both_sets)
+  as_numerical_both = predict(onehot::onehot(both_sets, stringsAsFactors = TRUE, max_levels = Inf), both_sets)
 
   # Normalize
   normalized_all = as.data.table(scale(as_numerical_both))
@@ -541,6 +352,4 @@ matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
   return(dist(rbind(mean_subset, mean_otherSubset)))
 
 }
-
-
 

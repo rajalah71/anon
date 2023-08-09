@@ -9,11 +9,11 @@ isLDiverse(data, sensitiveAttributes, quasiIdentifiers, l)
 \arguments{
 \item{data}{A data frame containing the sensitive data.}
 
+\item{sensitiveAttributes}{A character vector specifying the column name of the sensitive attribute.}
+
 \item{quasiIdentifiers}{A character vector specifying the column names of the quasi-identifiers.}
 
 \item{l}{The desired level of l-diversity.}
-
-\item{sensitiveAttribute}{A character vector specifying the column name of the sensitive attribute.}
 }
 \value{
 A boolean indicating whether the dataset is l-diverse for the sensitive attribute.
