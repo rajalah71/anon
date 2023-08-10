@@ -145,11 +145,10 @@ rlaplace <- function(n, location, scale) {
 #'                in the one hot encoded data given. Works well with
 #'                "onehot" package.
 #' @param sample Logical: Whether to sample from the numerical columns or take the max
-#' @param indicies The indicies of the categorical variables in the original data.
 #' @return The original data with categorical variables restored from one-hot encoding.
 #'
 #' @export
-inverse_onehot = function(data, names, indicies, sample=FALSE){
+inverse_onehot = function(data, names, sample=FALSE){
   # the inverse operation to one hot encoding, i.e. from one hot encoded data to the original data
   # names: the names of the categorical variables in the original data
   # sample: if TRUE, the value will be sampled from the one_hot_columns instead of choosing the maximum value
@@ -184,7 +183,6 @@ inverse_onehot = function(data, names, indicies, sample=FALSE){
   }
 
   # order the columns in the original order using colmn reordered
-  data = column_reordered(data, names, indicies)
 
   return(data)
 }

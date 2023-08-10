@@ -333,16 +333,10 @@ spectral = function(data, anonymizer, on_matrices = "U", approx = TRUE, sample =
 
   # Initialize an empty vector to store the names of factor columns
   names = c()
-  indicies = c()
 
   # Identify and store the names of factor columns
-  i = 1
   for(item in oh){
-    if(item$type == "factor"){
-      names = append(names, item$name)
-      indicies = append(indicies, i)
-    }
-    i = i + 1
+    if(item$type == "factor") names = append(names, item$name)
   }
 
   # Perform the one-hot encoding of the data using the trained model
@@ -419,8 +413,10 @@ spectral = function(data, anonymizer, on_matrices = "U", approx = TRUE, sample =
 
   # Return the categorical values as categorical if wanted, using sampling if TRUE
   if(!cat_as_num){
-    inverse = inverse_onehot(decentered_anon, names, indicies, sample)
-    colnames(inverse) = colnames
+    inverse = inverse_onehot(decentered_anon, names, sample)
+    colnames_now = colnames(inverse)
+    # reorder the columns to match the original data
+    inverse = inverse[,match(colnames, colnames_now)]
     return(inverse)
   }
 

@@ -4,7 +4,7 @@
 \alias{inverse_onehot}
 \title{Inverse One-Hot Encoding}
 \usage{
-inverse_onehot(data, names, indicies, sample = FALSE)
+inverse_onehot(data, names, sample = FALSE)
 }
 \arguments{
 \item{data}{The one-hot encoded dataset.}
@@ -13,8 +13,6 @@ inverse_onehot(data, names, indicies, sample = FALSE)
 Names in the original are assumed to be mapped to "name=level"
 in the one hot encoded data given. Works well with
 "onehot" package.}
-
-\item{indicies}{The indicies of the categorical variables in the original data.}
 
 \item{sample}{Logical: Whether to sample from the numerical columns or take the max}
 }
