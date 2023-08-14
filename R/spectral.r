@@ -317,29 +317,28 @@ spectral_legacy2 = function(data, anonymizer, on_matrices = "U", sample = FALSE,
 #'                    shown here on V for ease of parametrization, but the
 #'                    modifications will be made on it's transpose.
 #'
-#' @param approx Logical: Whether to use the truncated SVD (default) or the full SVD.
+#' @param approx Logical: Whether to use the truncated SVD or the full SVD (default).
 #'
 #' @return A new data frame containing the anonymized data.
 #'
 #' @importFrom onehot onehot
 #'
 #' @export
-spectral = function(data, anonymizer, on_matrices = "U", approx = TRUE, sample = FALSE, cat_as_num = FALSE){
+spectral = function(data, anonymizer, on_matrices = "U", approx = FALSE, sample = FALSE, cat_as_num = FALSE){
 
+  # Store the original ordering of the columns for later use (reordeding)
   colnames = colnames(data)
 
-  # One-hot encode the data using the 'onehot' package
+  # Make a one-hot object of the data using the 'onehot' package
   oh = onehot(data, stringsAsFactors = TRUE, max_levels = Inf)
 
-  # Initialize an empty vector to store the names of factor columns
+  # Identify and store the names of factor columns for later use (recombining)
   names = c()
-
-  # Identify and store the names of factor columns
   for(item in oh){
     if(item$type == "factor") names = append(names, item$name)
   }
 
-  # Perform the one-hot encoding of the data using the trained model
+  # Perform the one-hot encoding of the data using the previous one-hot object
   encoded = predict(oh, data)
 
   # Convert categorical columns to {-1, 1} encoding
@@ -350,25 +349,17 @@ spectral = function(data, anonymizer, on_matrices = "U", approx = TRUE, sample =
     encoded[,cols] = withnegatives
   }
 
-  # Store the {-1, 1} encoded data as 'onehot'
-  onehot = encoded
-
-  # Make a new empty dataframe of the original size and column names to store the centered data
-  centered = emptydf(onehot)
-
   # Calculate the column means for centering the data
-  means = sapply(onehot, mean)
+  means = colMeans(encoded)
 
   # Center the data by subtracting the column means from each column
-  for(i in seq(ncol(onehot))){
-    centered[,i] = onehot[,i] - means[i]
-  }
+  encoded = scale(encoded, center = TRUE, scale = FALSE)
 
   # Perform Singular Value Decomposition (SVD) on the centered data, M = UDV'
   if(approx){
-    svd = svd(centered)
+    svd = svd(encoded)
   } else {
-    svd = svd(centered, nu = nrow(centered), nv = ncol(centered))
+    svd = svd(encoded, nu = nrow(encoded), nv = ncol(encoded))
   }
 
   # Create a diagonal matrix from the singular values vector
@@ -391,29 +382,25 @@ spectral = function(data, anonymizer, on_matrices = "U", approx = TRUE, sample =
     stop("Invalid value for 'on_matrices' parameter.")
   }
 
-  # Reconstruct the anonymized centered data using UDV' form
+  # Reconstruct the anonymized data using UDV' form and adding the col means back in
   data_anon = as.data.frame(udv_anon)
-  colnames(data_anon) = colnames(data)
-
-  # Make a new empty dataframe of the original size and column names to store the decentered, anonymized data
-  decentered_anon = emptydf(onehot)
-
-  # Add the column means back to the anonymized data to decenter it
-  for(i in seq(ncol(onehot))){
-    decentered_anon[,i] = data_anon[,i] + means[i]
+  colnames(data_anon) = colnames(encoded)
+  for(i in seq(ncol(data_anon))){
+    data_anon[,i] = data_anon[,i] + means[i]
   }
 
   # Normalize the factor columns using normalized inverse logit
   for(name in names){
-    cols = startsWith(colnames(decentered_anon), name)
-    workingset = decentered_anon[,cols]
+    cols = startsWith(colnames(data_anon), name)
+    workingset = data_anon[,cols]
     normalized = t(apply(workingset, 1, function(x)  (exp(x) / (1 + exp(x)))/sum(exp(x) / (1 + exp(x))) ))
-    decentered_anon[,cols] = normalized
+    data_anon[,cols] = normalized
   }
 
-  # Return the categorical values as categorical if wanted, using sampling if TRUE
+  # Return the categorical values as numerical weights if cat_as_num = TRUE, or as categoricals if FALSE.
+  # Use sampling on picking the categories if sampling = TRUE
   if(!cat_as_num){
-    inverse = inverse_onehot(decentered_anon, names, sample)
+    inverse = inverse_onehot(data_anon, names, sample)
     colnames_now = colnames(inverse)
     # reorder the columns to match the original data
     inverse = inverse[,match(colnames, colnames_now)]
@@ -421,7 +408,7 @@ spectral = function(data, anonymizer, on_matrices = "U", approx = TRUE, sample =
   }
 
   # Return the decentered and anonymized data
-  return(decentered_anon)
+  return(data_anon)
 }
 
 

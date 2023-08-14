@@ -1,0 +1,62 @@
+---
+title: "Kuvaajavertailu"
+author: "Johannes Rajala"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(anon)
+```
+
+
+
+```{r}
+swap = spectral(iris, cell_swap)
+swapt = spectral(iris, cell_swap, approx = TRUE)
+par(mfrow = c(3,1))
+plot(iris, col = as.factor(iris[,5]))
+plot(swap, col = as.factor(swap[,5]))
+plot(swapt, col = as.factor(swapt[,5]))
+
+```
+
+
+```{r}
+# Generate a lower triangular matrix
+lower_triangular <- matrix(rnorm(16), nrow = 4)
+
+# Create a positive definite matrix using Cholesky decomposition
+positive_definite_matrix <- lower_triangular %*% t(lower_triangular)
+
+testi = as.data.frame(MASS::mvrnorm(n = 1000, c(10,2,-5,16), positive_definite_matrix))
+```
+
+```{r}
+plot(testi)
+```
+
+```{r}
+svd = svd(testi)
+cor(svd$u)
+```
+
+
+```{r}
+cor(testi)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
