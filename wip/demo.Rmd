@@ -24,6 +24,7 @@ plot(swapt, col = as.factor(swapt[,5]))
 
 
 ```{r}
+set.seed(12)
 # Generate a lower triangular matrix
 lower_triangular <- matrix(rnorm(16), nrow = 4)
 
@@ -38,22 +39,43 @@ plot(testi)
 ```
 
 ```{r}
-svd = svd(testi)
-cor(svd$u)
+svd = svd(testi, 1000, 4)
+
+colmeans = colMeans(svd$u)
+cov = (t(svd$u- colmeans) %*% (svd$u - colmeans))
+
+cor = cov2cor(cov)
+
 ```
+
+```{r}
+anon::prediction_plot( prediction_all(iris, 5, swap))
+```
+
+
+# samankaltaisuus, histogrammit, density plotit aineistoille := korrelaatiomatriiseja anonyymille ja oglle (numeeriset ok) kategoriselle
+# mittaukset anonymisoijan näkökulmasta (eli tetaa og datalla opetettu malli)'
+# esim violinplot
+# hajontakuviot jos ok
+# utility, privacy hyperparamter (noise) plot
+
+
 
 
 ```{r}
-cor(testi)
+noise = spectral(iris, sensitive_noise)
+reidentification_rate(iris, noise)
+```
+
+```{r}
+plot(noise, col = as.factor(noise[,5]))
 ```
 
 
 
-
-
-
-
-
+```{r}
+plot(iris)
+```
 
 
 
