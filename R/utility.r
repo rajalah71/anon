@@ -341,3 +341,24 @@ column_reordered = function(data, names, indicies){
  return(data)
 
 }
+
+#------------------------------------------------------
+
+#' Row Checker
+#'
+#' Check whether any row in the reference data is in the original data. If so, stop and raise an error.
+#' Could be used to detect failure to anonymize data in some methods.
+#'
+#' @param original_data The original dataset.
+#' @param reference_data The reference dataset.
+#'
+row_checker = function(original_data, reference_data){
+  # check whether any row in the reference data are in the original data, is so stop
+  for(i in seq(nrow(reference_data))){
+    # checke whether the row is in the original data
+    if(any(apply(original_data, 1, function(x) all(x == reference_data[i,])))){
+      stop("An exact match was produced with the method. Try again (if random) or try another method alltogether.")
+    }
+
+  }
+}

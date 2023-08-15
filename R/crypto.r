@@ -40,6 +40,7 @@ encrypt_message = function(m, e, n, bits) {
 #' @param data The data frame to be encrypted and scaled.
 #' @param bits The number of bits used for precision in the RSA encryption.
 #' @param my_key Logical parameter: whether your own key from .ssh folder should be used or not
+#' @param shuffle Logical parameter: whether the resulting data will be shuffled before returning. Warning if FALSE.
 #'
 #' @return A scaled data frame where each column contains the encrypted and scaled values.
 #'
@@ -49,17 +50,20 @@ encrypt_message = function(m, e, n, bits) {
 #' @examples
 #' data <- data.frame(x = c(10, 20, 30), y = c(5, 15, 25))
 #' encrypted_data <- encrypt(data, bits = 2048)
-#' print(encrypted_data)
 #'
 #' @export
-encrypt <- function(data, my_key = FALSE, bits = 2048) {
-  # Step 4.1: Generate RSA keys
+encrypt <- function(data, my_key = FALSE, bits = 2048, shuffle = TRUE) {
+
+  if(!shuffle) warning("Shuffle is FALSE. Do not release data.")
+
+  # Use existing key or generate a new RSA key
   if(my_key){
     key = my_key()
   } else{
     key = rsa_keygen(bits)
     }
 
+  # Generate the matching public key
   pubkey = as.list(key)$pubkey
 
   # parameters for rsa
@@ -68,7 +72,6 @@ encrypt <- function(data, my_key = FALSE, bits = 2048) {
 
   # Encrypt the data
   encrypted = lapply(data, function(x) encrypt_message(x, e, n, bits))
-
 
   # Make an empty dataframe of the original size to store the minmax scaled values
   col = ncol(data)
@@ -108,16 +111,8 @@ encrypt <- function(data, my_key = FALSE, bits = 2048) {
   cat("Information loss on conversion to double:",1-geometric_mean_result,"\n")
 
   # Return the encrypted and scaled data
+  if(shuffle) scaled = shuffle(scaled)
   return(scaled)
 
 }
-
-# encrypt(data3)
-#
-# data3 <- data.frame(
-#   age = c(1, 1, 1, 1, 1),
-#   gender = c(2, 2, 2, 3, 3),
-#   zip_code = c(4, 4, 4, 5, 5),
-#   disease = c(4,5,5,6, 6)
-# )
 

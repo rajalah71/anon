@@ -4,7 +4,7 @@
 \alias{encrypt}
 \title{Encrypts the data using RSA encryption and scales the encrypted values to [0, 1].}
 \usage{
-encrypt(data, my_key = FALSE, bits = 2048)
+encrypt(data, my_key = FALSE, bits = 2048, shuffle = TRUE)
 }
 \arguments{
 \item{data}{The data frame to be encrypted and scaled.}
@@ -12,6 +12,8 @@ encrypt(data, my_key = FALSE, bits = 2048)
 \item{my_key}{Logical parameter: whether your own key from .ssh folder should be used or not}
 
 \item{bits}{The number of bits used for precision in the RSA encryption.}
+
+\item{shuffle}{Logical parameter: whether the resulting data will be shuffled before returning. Warning if FALSE.}
 }
 \value{
 A scaled data frame where each column contains the encrypted and scaled values.
@@ -23,6 +25,5 @@ with the provided number of bits and scales the encrypted values to the [0, 1] r
 \examples{
 data <- data.frame(x = c(10, 20, 30), y = c(5, 15, 25))
 encrypted_data <- encrypt(data, bits = 2048)
-print(encrypted_data)
 
 }

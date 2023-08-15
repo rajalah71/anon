@@ -17,9 +17,8 @@ A data frame or matrix with Laplace-distributed noise added to each column.
 \description{
 This function adds Laplace-distributed noise to each column of the input data.
 The Laplace noise is controlled by the privacy parameter \code{epsilon}.
-Higher \code{epsilon} values allow for less noise and provide lower privacy guarantees.
-The privacy guarantees depend on the choice of \code{epsilon}, which determines the scale
-of the Laplace distribution.
+\code{epsilon} determines the scale
+of the Laplace distribution. Larger \code{epsilon} means less noise.
 }
 \examples{
 # Create a sample data frame

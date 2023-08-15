@@ -16,12 +16,6 @@
 #' is l-diverse for the sensitive attribute `sensitiveAttribute`
 #' based on the quasi-identifiers specified in `quasiIdentifiers` and the desired level of l-diversity `l`.
 #'
-#' @examples
-#' \dontrun{
-#' data(iris)
-#' isLDiverse(iris, "Species", c("Petal.Width", "Sepal.Length"), 2)
-#'}
-#' @export
 isLDiverse <- function(data, sensitiveAttributes, quasiIdentifiers, l) {
 
   for (sensitiveAttr in sensitiveAttributes) {

@@ -36,3 +36,16 @@ combine_ordered = function(column){
 
 
   }
+
+
+
+row_checker = function(original_data, reference_data){
+  # check whether any row in the reference data are in the original data, is so stop
+  for(i in seq(nrow(reference_data))){
+    # checke whether the row is in the original data
+    if(any(apply(original_data, 1, function(x) all(x == reference_data[i,])))){
+      stop("An exact match was produced with the method. Try again (if random) or try another method alltogether.")
+    }
+
+  }
+}

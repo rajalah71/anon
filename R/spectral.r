@@ -34,9 +34,8 @@ cell_swap = function(data){
 #'
 #' This function adds Laplace-distributed noise to each column of the input data.
 #' The Laplace noise is controlled by the privacy parameter \code{epsilon}.
-#' Higher \code{epsilon} values allow for less noise and provide lower privacy guarantees.
-#' The privacy guarantees depend on the choice of \code{epsilon}, which determines the scale
-#' of the Laplace distribution.
+#' \code{epsilon} determines the scale
+#' of the Laplace distribution. Larger \code{epsilon} means less noise.
 #'
 #' @param data A data frame or matrix containing the original data.
 #' @param epsilon The privacy parameter controlling the amount of noise added.
@@ -65,27 +64,23 @@ sensitive_noise = function(data, epsilon = 1){
 
 #---------------------------------------
 
-#' Anonymize a data frame using spectral decomposition.
+#' Anonymize a data frame using spectral anonymization.
 #'
-#' This function takes a data frame as input and performs spectral decomposition
-#' to anonymize the data by altering its left singular vectors. The anonymization
-#' is done by applying a user-defined anonymizer function to vectors.
-#' The function then reconstructs the decentered, anonymized data
-#' and returns it as a new data frame.
+#' This function takes a data frame M as input and performs singular value decomposition on it, M = UDV'.
+#' Then the user defined anonymization function is performed on some matrix (or matrices) of the decomposition.
+#' M is reconstructed using the anonymized SVD and returned.
+#'
 #'
 #' @param data A data frame to be anonymized and decentered.
 #'
-#' @param anonymizer A function used to anonymize the U matrix from singluar
+#' @param anonymizer A function used to anonymize part of the singluar
 #'                    value decomposition. The function should
-#'                   take a data frame as input and return an anonymized data frame.
-#'                   For example, the anonymizer function could perform a random
-#'                   permutation of rows to achieve anonymization.
+#'                   take a data frame as input and return an anonymized data frame of the same size.
 #'
-#' @param sample Logical: Whether to sample from the numerical columns
-#'                or take the max
+#' @param sample Logical: Whether to sample a value for a categorical variable represented in the probabilistic state or take the value with the most weigth.
 #'
 #' @param cat_as_num Logical: Whether categorical variables should be returned
-#'                    as numerical or not
+#'                    as numerical or not.
 #'
 #' @param on_matrices A character string indicating which matrix to anonymize.
 #'                    Possible values are "U", "V", "UD", and "DV".
@@ -93,14 +88,19 @@ sensitive_noise = function(data, epsilon = 1){
 #'                    shown here on V for ease of parametrization, but the
 #'                    modifications will be made on it's transpose.
 #'
-#' @param approx Logical: Whether to use the truncated SVD or the full SVD (default).
+#' @param full Logical: Whether to use the full SVD or the reduced SVD (default).
+#'
+#' @param shuffle Logical: Whether to shuffle the resulting data before returning.
+#'                Warning if FALSE.
 #'
 #' @return A new data frame containing the anonymized data.
 #'
 #' @importFrom onehot onehot
 #'
 #' @export
-spectral = function(data, anonymizer, on_matrices = "U", approx = FALSE, sample = FALSE, cat_as_num = FALSE){
+spectral = function(data, anonymizer, on_matrices = "U", full = FALSE, sample = FALSE, cat_as_num = FALSE, shuffle = TRUE){
+
+  if(!shuffle) warning("Shuffle is FALSE. Do not release data.")
 
   # Store the original ordering of the columns for later use (reordeding)
   colnames = colnames(data)
@@ -132,7 +132,7 @@ spectral = function(data, anonymizer, on_matrices = "U", approx = FALSE, sample 
   encoded = scale(encoded, center = TRUE, scale = FALSE)
 
   # Perform Singular Value Decomposition (SVD) on the centered data, M = UDV'
-  if(approx){
+  if(!full){
     svd = svd(encoded)
   } else {
     svd = svd(encoded, nu = nrow(encoded), nv = ncol(encoded))
@@ -180,10 +180,15 @@ spectral = function(data, anonymizer, on_matrices = "U", approx = FALSE, sample 
     colnames_now = colnames(inverse)
     # reorder the columns to match the original data
     inverse = inverse[,match(colnames, colnames_now)]
+    # Check whether an exact
+    #row_checker(data, inverse)
+    if(shuffle) inverse = shuffle(inverse)
     return(inverse)
   }
 
   # Return the decentered and anonymized data
+  #row_checker(data, data_anon)
+  if(shuffle) data_anon = shuffle(data_anon)
   return(data_anon)
 }
 
