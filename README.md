@@ -59,5 +59,5 @@ spectral(data, sensitive_noise)
 
 You can plot the predictive threat the anonymized data poses on the general populace against the threat of a non-overlapping sample. 
 
-prediction_plot(prediction_all(data, k=5, data_anon))
+prediction_plot(data, k=5, data_anon)
 

@@ -79,15 +79,10 @@ isLDiverse <- function(data, sensitiveAttributes, quasiIdentifiers, l) {
 #' ldiverse_data <- makeLdiverse(data, c("age", "gender"), "disease", list(age = age_fun, gender = gender_fun), 2)
 #'}
 #' @export
-lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymizationFunctions = NULL, k=5, shuffle = TRUE) {
+lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymizationFunctions = NULL, k=5) {
 
   # For runtime
   start_time <- Sys.time()
-
-  # Do not release unshuffled data. For diagnostics only.
-  if(shuffle == FALSE){
-    warning("Shuffle is FALSE, do not release data.")
-  }
 
   # If quasiIdentifiers are not provided, calculate the cardinality of each column
   # and identify numeric and categorical columns for default behavior.

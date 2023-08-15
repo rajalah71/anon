@@ -268,22 +268,26 @@ prediction_all = function(original_data, k, reference_data, dist = euc_dist){
 
 #' Prediction Plot
 #'
-#' Plot the measures in the original data against measures of the same type in the reference data.
+#' Plot the measures of predictive disclosure risk in an nonoverlapping sample to the general populace against the measures of the same type in the reference data.
 #'
 #'
-#' @param prediction_all_output The output from the prediction_all function, containing the measures for original and reference data.
+#' @param original_data The original data
+#' @param k The amount of neighbouring points to consider (recommended range: from 5 to 10)
+#' @param reference_data The anonymized data
+#' @param dist The distance measure to use. (Defaults to eucledian distance)
 #'
 #' @importFrom graphics plot legend lines par title
 #' @examples
 #' original_data <- as.data.frame(matrix(1:6, ncol = 2))
 #' reference_data <- as.data.frame(matrix(7:12, ncol = 2))
-#' preds = prediction_all(original_data, k = 2, reference_data)
-#' prediction_plot(preds)
+#' prediction_plot(original_data, k = 2, reference_data)
 #'
 #' @export
-prediction_plot = function(prediction_all_output){
+prediction_plot = function(original_data, k, reference_data, dist = euc_dist){
   # plot the measures in original against measures of the same type in reference make par(mfrow = c(3,1)) before calling this function and revert it after calling this function
   par(mfrow = c(3,1))
+
+  prediction_all_output = prediction_all(original_data, k, reference_data, dist)
 
   # cumulative sum of distances normalized by the sum of distances
   y_scaler = function(data){

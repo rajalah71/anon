@@ -4,18 +4,23 @@
 \alias{prediction_plot}
 \title{Prediction Plot}
 \usage{
-prediction_plot(prediction_all_output)
+prediction_plot(original_data, k, reference_data, dist = euc_dist)
 }
 \arguments{
-\item{prediction_all_output}{The output from the prediction_all function, containing the measures for original and reference data.}
+\item{original_data}{The original data}
+
+\item{k}{The amount of neighbouring points to consider (recommended range: from 5 to 10)}
+
+\item{reference_data}{The anonymized data}
+
+\item{dist}{The distance measure to use. (Defaults to eucledian distance)}
 }
 \description{
-Plot the measures in the original data against measures of the same type in the reference data.
+Plot the measures of predictive disclosure risk in an nonoverlapping sample to the general populace against the measures of the same type in the reference data.
 }
 \examples{
 original_data <- as.data.frame(matrix(1:6, ncol = 2))
 reference_data <- as.data.frame(matrix(7:12, ncol = 2))
-preds = prediction_all(original_data, k = 2, reference_data)
-prediction_plot(preds)
+prediction_plot(original_data, k = 2, reference_data)
 
 }
