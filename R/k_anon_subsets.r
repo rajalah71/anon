@@ -123,7 +123,8 @@ kAnon <- function(data, k, quasiIdentifiers = NULL, anonymizationFunctions = NUL
       # subsets[i] keeps increasing in size and subsets keep getting popped until subsets[i] can be mande k-anonymous given the quasi_ids and functions
       nearestSubsetIndex <- findNearestSubset(subsets[i], subsets, quasiIdentifiers)
       if(nearestSubsetIndex == 0){
-        stop("All subsets combined and no k-anonymity obtained")
+        # message("All subsets combined and no k-anonymity obtained")
+        break
       }
 
       # Add the nearest subset to the current subset
@@ -187,7 +188,7 @@ kAnon <- function(data, k, quasiIdentifiers = NULL, anonymizationFunctions = NUL
     return(shuffle(kAnonData))
   } else {
     print(Sys.time() - start_time)
-    stop("Something went wrong.")
+    stop("k-anonymity could not be obtained.")
   }
 }
 

@@ -13,7 +13,7 @@ A package containing tools for data anonymization for RStudio.
 
 ## Usage
 
-The package contains (4 at the moment) functions to anonymize your data, as well as helper functions to modify different columns in different ways. 
+The package contains 4 functions to anonymize your data, as well as helper functions to modify different columns in different ways. 
 
 ## Methods
 
@@ -35,10 +35,6 @@ lDiversity(data, sensitiveAtrributes = "Species", l=2)
 
 - Works similiarly to kAnon, just need to specify the sensitive attributes. Won't probably work with more than one of them.
 
-### _t_-closeness
-
-TODO
-
 ### RSA
 
 data = data("iris")
@@ -54,3 +50,14 @@ data = data("iris")
 spectral(data, cell_swap)
 
 - Anonymizes data on the spectral basis provided by SVD. Supports any anoymization function $f: R^{a \times b} \to R^{a \times b}$.
+
+spectral(data, sensitive_noise)
+
+- Adds noise to the columns of $U$ from Laplace distribution. 
+
+## Plots
+
+You can plot the predictive threat the anonymized data poses on the general populace against the threat of a non-overlapping sample. 
+
+prediction_plot(prediction_all(data, k=5, data_anon))
+

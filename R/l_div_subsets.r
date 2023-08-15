@@ -56,10 +56,6 @@ isLDiverse <- function(data, sensitiveAttributes, quasiIdentifiers, l) {
 #' @param k (Default 5) The minimum number of rows in an l diverse subset. Not stricly an l-diversity
 #'          requirement, but here to accomodate for Finnish law / customs on
 #'          anonymous data publishing.
-#' @param shuffle (Default TRUE) A parameter which determines whether the data
-#'                  will be shuffled or not before returning. Will give warning
-#'                  uf FALSE, as no data should be released without shuffling.
-#'                  For diagnostic use, or for calculating reidentification rate.
 #'
 #'
 #' @return A dataset that is l-diverse with respect to the specified quasi-identifier columns and sensitive attributes,
@@ -172,7 +168,7 @@ lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, an
       # subsets[i] keeps increasing in size and subsets keep getting popped until subsets[i] can be made l-diverse given the quasi_ids and functions
       nearestSubsetIndex <- findNearestSubset(subsets[i], subsets, quasiIdentifiers)
       if(nearestSubsetIndex == 0){
-        message("All subsets combined and no l-diversity obtained.")
+        # message("All subsets combined and no l-diversity obtained.")
         break
       }
 
@@ -240,18 +236,8 @@ lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, an
 
   # Just a final check
   if (isLDiverse(lDiverseData, sensitiveAttributes, quasiIdentifiers, l)) {
-    # shuffled <- lDiverseData[sample(nrow(lDiverseData)), ]
-    # rownames(shuffled) <- 1:nrow(shuffled)
-    # print(Sys.time() - start_time)
-    # return(shuffled)
-    if(shuffle == TRUE){
-      return(shuffle(lDiverseData))
-    } else{
-      return(lDiverseData)
-    }
-  }
-
-  else{
+    return(shuffle(lDiverseData))
+  } else{
     print(Sys.time() - start_time)
     stop("l-diversity could not be obtained.")
   }
