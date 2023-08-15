@@ -140,7 +140,7 @@ lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, an
   i <- 0
 
   # Iterate over subsets
-  # cat("Iterating over all subsets:", subset_length, " iterations at most. \n" )
+  cat("Iterating over all subsets:", subset_length, " iterations at most. \n" )
 
   while (TRUE) {
     # For printing the progress
@@ -236,6 +236,7 @@ lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, an
 
   # Just a final check
   if (isLDiverse(lDiverseData, sensitiveAttributes, quasiIdentifiers, l)) {
+    print(Sys.time() - start_time)
     return(shuffle(lDiverseData))
   } else{
     print(Sys.time() - start_time)

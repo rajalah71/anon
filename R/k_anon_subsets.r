@@ -185,6 +185,7 @@ kAnon <- function(data, k, quasiIdentifiers = NULL, anonymizationFunctions = NUL
 
   # Just a final check
   if (is_k_anonymous(kAnonData, quasiIdentifiers, k)) {
+    print(Sys.time() - start_time)
     return(shuffle(kAnonData))
   } else {
     print(Sys.time() - start_time)
