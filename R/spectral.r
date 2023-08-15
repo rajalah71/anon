@@ -181,13 +181,11 @@ spectral = function(data, anonymizer, on_matrices = "U", full = FALSE, sample = 
     # reorder the columns to match the original data
     inverse = inverse[,match(colnames, colnames_now)]
     # Check whether an exact
-    #row_checker(data, inverse)
     if(shuffle) inverse = shuffle(inverse)
     return(inverse)
   }
 
   # Return the decentered and anonymized data
-  #row_checker(data, data_anon)
   if(shuffle) data_anon = shuffle(data_anon)
   return(data_anon)
 }

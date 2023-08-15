@@ -40,7 +40,7 @@ A dataset that is l-diverse with respect to the specified quasi-identifier colum
   or an error is thrown if the desired level of l-diversity cannot be achieved.
 }
 \description{
-This function takes a dataset and applies a set of diversity functions to the specified
+This function takes a dataset and applies a set of anonymity functions to the specified
 quasi-identifier columns in order to achieve l-diversity with respect to the sensitive attributes.
 It checks if the dataset is already l-diverse and returns the dataset as is in that case.
 If not, it iteratively combines subsets of the dataset and applies the anonymity functions
