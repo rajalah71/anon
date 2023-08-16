@@ -25,14 +25,14 @@ take a data frame as input and return an anonymized data frame of the same size.
 Possible values are "U", "V", "UD", and "DV".
 The default is "U". Note that the transposition is not
 shown here on V for ease of parametrization, but the
-modifications will be made on it's transpose.}
+modifications will be made on it's transpose, V'.}
 
 \item{full}{Logical: Whether to use the full SVD or the reduced SVD (default).}
 
-\item{sample}{Logical: Whether to sample a value for a categorical variable represented in the probabilistic state or take the value with the most weigth.}
+\item{sample}{Logical: Whether to sample a value for a categorical variable represented in the probabilistic state or take the value with the most weight.}
 
 \item{cat_as_num}{Logical: Whether categorical variables should be returned
-as numerical or not.}
+in their probabilistic state or not.}
 
 \item{shuffle}{Logical: Whether to shuffle the resulting data before returning.
 Warning if FALSE.}
@@ -43,5 +43,6 @@ A new data frame containing the anonymized data.
 \description{
 This function takes a data frame M as input and performs singular value decomposition on it, M = UDV'.
 Then the user defined anonymization function is performed on some matrix (or matrices) of the decomposition.
-M is reconstructed using the anonymized SVD and returned.
+M is reconstructed using the anonymized SVD and returned. Built in functions that work with spectral are
+"cell_swap" and "sensitive_noise".
 }

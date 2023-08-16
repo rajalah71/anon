@@ -68,7 +68,8 @@ sensitive_noise = function(data, epsilon = 1){
 #'
 #' This function takes a data frame M as input and performs singular value decomposition on it, M = UDV'.
 #' Then the user defined anonymization function is performed on some matrix (or matrices) of the decomposition.
-#' M is reconstructed using the anonymized SVD and returned.
+#' M is reconstructed using the anonymized SVD and returned. Built in functions that work with spectral are
+#' "cell_swap" and "sensitive_noise".
 #'
 #'
 #' @param data A data frame to be anonymized and decentered.
@@ -77,16 +78,16 @@ sensitive_noise = function(data, epsilon = 1){
 #'                    value decomposition. The function should
 #'                   take a data frame as input and return an anonymized data frame of the same size.
 #'
-#' @param sample Logical: Whether to sample a value for a categorical variable represented in the probabilistic state or take the value with the most weigth.
+#' @param sample Logical: Whether to sample a value for a categorical variable represented in the probabilistic state or take the value with the most weight.
 #'
 #' @param cat_as_num Logical: Whether categorical variables should be returned
-#'                    as numerical or not.
+#'                    in their probabilistic state or not.
 #'
 #' @param on_matrices A character string indicating which matrix to anonymize.
 #'                    Possible values are "U", "V", "UD", and "DV".
 #'                    The default is "U". Note that the transposition is not
 #'                    shown here on V for ease of parametrization, but the
-#'                    modifications will be made on it's transpose.
+#'                    modifications will be made on it's transpose, V'.
 #'
 #' @param full Logical: Whether to use the full SVD or the reduced SVD (default).
 #'

@@ -45,13 +45,17 @@ encrypt(data)
 
 data = data("iris")
 
-spectral(data, cell_swap)
+spectral(data, your_function)
 
-- Anonymizes data on the spectral basis provided by SVD. Supports any anoymization function $f: R^{a \times b} \to R^{a \times b}$.
+- Anonymizes data on the spectral basis provided by SVD, $M = UDV'$. Supports any anoymization function $f: R^{a \times b} \to R^{a \times b}$.
 
-spectral(data, sensitive_noise)
+spectral(data, cell_swap, on_matrices = "U")
 
-- Adds noise to the columns of $U$ from Laplace distribution. 
+- Performs column permutations on each column the matrix $U$.
+
+spectral(data, sensitive_noise, on_matrixes = "UD")
+
+- Adds noise to the columns of $UD$ from Laplace distribution according to the range of values (max - min) on the column. 
 
 ## 3. Plots
 
