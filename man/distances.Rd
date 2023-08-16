@@ -2,7 +2,7 @@
 % Please edit documentation in R/anon_measures.r
 \name{distances}
 \alias{distances}
-\title{Calculate the minimum distance between rows of two datasets.}
+\title{Calculate the distances between rows of two datasets.}
 \usage{
 distances(original_data, reference_data = NULL, dist = euc_dist)
 }
@@ -18,7 +18,7 @@ A numeric vector containing the minimum distances between rows of the
         \code{original_data} and \code{reference_data}.
 }
 \description{
-This function calculates the minimum distance between each row of the
+This function calculates the distances between each row of the
 \code{original_data} and every row of the \code{reference_data} using a specified
 distance function (\code{dist}). The datasets are first one-hot encoded to enable
 distance calculations. The function then scales the datasets to have mean 0 and

@@ -233,13 +233,12 @@ getMinMax <- function(numbers) {
 
 #' Combine the lowest classes
 #'
-#' This function combines the lowest classes in a column up to a specified number (k).
-#' The lowest classes are determined based on the frequency of occurrence in the column.
+#' This function iteratively combines the fewest occuring categorical values in a column (k) times.
 #'
 #' @param column The column in which to combine the lowest classes.
-#' @param k The maximum number of lowest classes to combine.
+#' @param k The maximum number of fewest occurances to combine.
 #'
-#' @return The column with the lowest classes combined.
+#' @return The column with the categorical values combined.
 #'
 #' @examples
 #' column <- c("A", "B", "A", "C", "B", "D", "A", "C", "B")

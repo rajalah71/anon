@@ -1,8 +1,8 @@
 # anon
 
-A package containing tools for data anonymization for RStudio.
+A package containing data anonymization tools for R.
 
-## Installation
+## 1. Installation
 
 1. Install "devtools" package on R
     - install.packages("devtools")
@@ -11,13 +11,11 @@ A package containing tools for data anonymization for RStudio.
 3. Load the "anon" library
     - library(anon)
 
-## Usage
+## 2. Usage
 
 The package contains 4 functions to anonymize your data, as well as helper functions to modify different columns in different ways. 
 
-## Methods
-
-### _k_-anonymity
+### 2.1 _k_-anonymity
 
 data = data("iris")
 
@@ -27,7 +25,7 @@ kAnon(data, k=5)
 
 - You can define your own functions if you want, and on what columns the function will operate on. Functions must be on a named list which names match the names of the quasi identifier columns. The columns will be worked on the order you name them, or by cardinality if left unnamed. 
 
-### _l_-diversity
+### 2.2 _l_-diversity
 
 data = data("iris")
 
@@ -35,15 +33,15 @@ lDiversity(data, sensitiveAtrributes = "Species", l=2)
 
 - Works similiarly to kAnon, just need to specify the sensitive attributes. Won't probably work with more than one of them.
 
-### RSA
+### 2.3 RSA
 
 data = data("iris")
 
 encrypt(data)
 
-- Encrypts the data using a new RSA key = 2048 bits by default. 
+- Encrypts the data using a new RSA key = 2048 bits by default. Do not distribute the public key.
 
-### Spectral anonymization
+### 2.4 Spectral anonymization
 
 data = data("iris")
 
@@ -55,7 +53,7 @@ spectral(data, sensitive_noise)
 
 - Adds noise to the columns of $U$ from Laplace distribution. 
 
-## Plots
+## 3. Plots
 
 You can plot the predictive threat the anonymized data poses on the general populace against the threat of a non-overlapping sample. 
 

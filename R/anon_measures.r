@@ -26,9 +26,9 @@ euc_dist = function(x,y){
 
 #----------------------------------------------------------
 
-#' Calculate the minimum distance between rows of two datasets.
+#' Calculate the distances between rows of two datasets.
 #'
-#' This function calculates the minimum distance between each row of the
+#' This function calculates the distances between each row of the
 #' \code{original_data} and every row of the \code{reference_data} using a specified
 #' distance function (\code{dist}). The datasets are first one-hot encoded to enable
 #' distance calculations. The function then scales the datasets to have mean 0 and
