@@ -1,0 +1,12 @@
+poisson binomi regressio
+viikottainen päänsärky vasteena
+matkapuhelin määrä
+minuuttien määrä
+ei handsfree
+ikä
+sukupuoli
+depressio
+särkylääke
+
+jatkuva headache impact test (hit jotain)
+trafic_min_of
