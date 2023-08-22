@@ -78,7 +78,7 @@ kAnon <- function(data, k, quasiIdentifiers = NULL, anonymizationFunctions = NUL
       if (col %in% numeric_cols) {
         anonymizationFunctions[[col]] <- function(x) mean(x)
       } else {
-        anonymizationFunctions[[col]] <- function(x) combine_lowest_classes(x)
+        anonymizationFunctions[[col]] <- function(x) most_common(x)
       }
     }
   }

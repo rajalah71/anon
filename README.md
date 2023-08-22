@@ -17,9 +17,9 @@ The package contains 4 functions to anonymize your data, as well as helper funct
 
 ### 2.1 _k_-anonymity
 
-data = data("iris")
+data("iris")
 
-kAnon(data, k=5) 
+kAnon(iris, k=5) 
 
 - This uses all columns as quasi identifiers and operates on the with mean on numeric columns and with combining on categorical ones.
 
@@ -27,33 +27,33 @@ kAnon(data, k=5)
 
 ### 2.2 _l_-diversity
 
-data = data("iris")
+data("iris")
 
-lDiversity(data, sensitiveAtrributes = "Species", l=2) 
+lDiversity(iris, sensitiveAtrributes = "Species", l=2) 
 
 - Works similiarly to kAnon, just need to specify the sensitive attributes. Won't probably work with more than one of them.
 
 ### 2.3 RSA
 
-data = data("iris")
+data("iris")
 
-encrypt(data)
+encrypt(iris)
 
 - Encrypts the data using a new RSA key = 2048 bits by default. Do not distribute the public key.
 
 ### 2.4 Spectral anonymization
 
-data = data("iris")
+data("iris")
 
-spectral(data, your_function)
+spectral(iris, your_function)
 
 - Anonymizes data on the spectral basis provided by SVD, $M = UDV'$. Supports any anoymization function $f: R^{a \times b} \to R^{a \times b}$.
 
-spectral(data, cell_swap, on_matrices = "U")
+spectral(iris, cell_swap, on_matrices = "U")
 
 - Performs column permutations on each column the matrix $U$.
 
-spectral(data, sensitive_noise, on_matrixes = "UD")
+spectral(iris, sensitive_noise, on_matrices = "UD")
 
 - Adds noise to the columns of $UD$ from Laplace distribution according to the range of values (max - min) on the column. 
 

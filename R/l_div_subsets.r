@@ -102,7 +102,7 @@ lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, an
       if (col %in% numeric_cols) {
         anonymizationFunctions[[col]] <- function(x) mean(x)
       } else {
-        anonymizationFunctions[[col]] <- function(x) combine_lowest_classes(x)
+        anonymizationFunctions[[col]] <- function(x) most_common(x)
       }
     }
   }

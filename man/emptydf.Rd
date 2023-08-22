@@ -17,8 +17,3 @@ This function takes a data frame as input and returns a new empty data frame
 with the same dimensions and column names as the input data. The returned data frame
 will have no data but can be populated later with relevant information.
 }
-\examples{
-data <- data.frame(x = c(1, 2, 3), y = c(4, 5, 6))
-empty_data <- emptydf(data)
-empty_data
-}

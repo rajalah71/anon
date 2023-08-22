@@ -35,11 +35,6 @@ minmax_scaler = function(column){
 #'
 #' @return An empty data frame with the same dimensions and column names as \code{data}.
 #'
-#' @examples
-#' data <- data.frame(x = c(1, 2, 3), y = c(4, 5, 6))
-#' empty_data <- emptydf(data)
-#' empty_data
-#' @export
 emptydf = function(data){
   new = as.data.frame(matrix(nrow = nrow(data), ncol = ncol(data)))
   colnames(new) = colnames(data)
@@ -48,17 +43,17 @@ emptydf = function(data){
 
 #----------------------------------------
 
-#' Shuffle the values in each column of a data frame.
+#' Shuffle the rows of a data frame.
 #'
 #' This function takes a data frame as input and returns a new data frame with
-#' the same dimensions as the original data. The values in each column of the
+#' the same dimensions as the original data. The rows of the
 #' returned data frame are shuffled randomly using the \code{sample} function,
-#' effectively creating a random permutation of each column.
+#' effectively re-ordering the dataframe, as in shuffling a deck of cards.
 #'
 #' @param data A data frame to be shuffled.
 #'
 #' @return A new data frame with the same dimensions as data, but with the
-#'         values in each column randomly shuffled.
+#'         rows shuffled.
 #'
 #' @examples
 #' data <- data.frame(x = c(1, 2, 3), y = c(4, 5, 6))
@@ -66,7 +61,7 @@ emptydf = function(data){
 #' shuffled_data
 #' @export
 shuffle = function(data){
-  # rshuffle the rows of the data
+
   data = data[sample(nrow(data)),]
   rownames(data) = seq(nrow(data))
 
@@ -98,39 +93,6 @@ rlaplace <- function(n, location, scale) {
   laplace_numbers <- location - scale * sign(u - 0.5) * log(1 - 2 * abs(u - 0.5))
   return(laplace_numbers)
 }
-
-#-------------------------------------------------------
-
-# inverse_onehot = function(data, names){
-#   # the inverse operation to one hot encoding, i.e. from one hot encoded data to the original data
-#   # names: the names of the categorical variables in the original data
-#
-#   # iterate over the names of the categorical variables and combine the one hot encoded columns into one column
-#   for(name in names){
-#     # get the columns that are one hot encoded
-#     one_hot_columns = grep(name, names(data))
-#
-#     # get the names of the grepped columns
-#     one_hot_columns_names = names(data)[one_hot_columns]
-#
-#     # remove the first part of the column names, as in the one hot encoding the column names are of the form "name=level". We only need the level part
-#     one_hot_columns_names = gsub(paste0(name, "="), "", one_hot_columns_names)
-#
-#
-#     print(one_hot_columns_names)
-#
-#
-#     # combine the columns such that the value of the combined column is the column which has the highest value
-#     data[, name] = apply(data[, one_hot_columns], 1, function(x) paste(which(x == max(x))))
-#
-#     # data[, name] = apply(data[, one_hot_columns], 1, function(x) paste(which(x == 1)))
-#     # remove the one hot encoded columns
-#     data = data[, -one_hot_columns]
-#   }
-#
-#   return(data)
-#
-# }
 
 #-------------------------------------------------------
 
@@ -360,4 +322,26 @@ row_checker = function(original_data, reference_data){
     }
 
   }
+}
+
+#------------------------------------------------------
+
+#' Most Common Value
+#'
+#' Find the most common value in a column.
+#'
+#' @param column The input column.
+#' @return A vector with the most common value repeated for the length of the input column.
+#'
+#' @examples
+#' data <- c(1, 2, 2, 3, 3, 3, 4, 4, 4, 4)
+#' most_common(data)
+#' @export
+most_common = function(column){
+
+  common = table(column)
+  common = names(common)[which.max(common)]
+  repeated = rep_len(common, length(column))
+  return(repeated)
+
 }
