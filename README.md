@@ -7,7 +7,7 @@ A package containing data anonymization tools for R.
 1. Install "devtools" package on R
     - install.packages("devtools")
 2. Install the "anon" package on R
-    - devtools::install_github("rajalah71/anon") (or /anon@paketti for developement version, may be unstable / unfinished)
+    - devtools::install_github("rajalah71/anon") (or /anon@paketti for development version, may be unstable / unfinished)
 3. Load the "anon" library
     - library(anon)
 
