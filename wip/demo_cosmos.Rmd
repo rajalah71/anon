@@ -53,6 +53,7 @@ ldiv <- read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/ldiv", row.names=1)
 
 ```{r}
 glm = glm(as.factor(headache_FU) ~., data = train, family = "binomial")
+summary(glm)
 preds = predict(glm, test[,-1])
 ```
 
@@ -68,6 +69,7 @@ auc(roc)
 
 ```{r}
 glm = glm(as.factor(headache_FU) ~., data = kanon, family = "binomial")
+summary(glm)
 preds = predict(glm, test[,-1])
 ```
 
@@ -87,6 +89,7 @@ prediction_plot(train, 5, kanon)
 
 ```{r}
 glm = glm(as.factor(headache_FU) ~., data = ldiv, family = "binomial")
+summary(glm)
 preds = predict(glm, test[,-1])
 ```
 
@@ -110,6 +113,7 @@ prediction_plot(train, 5, ldiv)
 noise = spectral(data, function(x) sensitive_noise(x, 3), on_matrices = "UD", shuffle = FALSE)
 
 glm = glm(as.factor(headache_FU) ~., data = noise, family = "binomial")
+summary(glm)
 preds = predict(glm, test[,-1])
 reidentification_rate(data, noise)
 ```
@@ -131,6 +135,7 @@ prediction_plot(train, 5, noise)
 swap = spectral(data, cell_swap)
 
 glm = glm(as.factor(headache_FU) ~., data = swap, family = "binomial")
+summary(glm)
 preds = predict(glm, test[,-1])
 ```
 
@@ -153,6 +158,7 @@ rsa_train = rsa[index, ]
 rsa_test = rsa[!index, ]
 
 glm = glm(as.factor(headache_FU) ~., data = rsa_train, family = "binomial")
+summary(glm)
 preds = predict(glm, rsa_test[,-1])
 ```
 
