@@ -1,0 +1,47 @@
+---
+title: "Demo Cosmos"
+author: "Johannes Rajala"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(anon)
+library(randomForest)
+COSMOS_HDS2 <- read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/COSMOS_HDS2.csv")
+```
+
+```{r}
+set.seed(1288)
+cols = c("headache_FU", 
+          "Age", "Currsmoker", "Bmi", "Gender", "Depression", "S01MPH0101", "agefirstmpuse", "numbermpyears",  "Alamount", "sf12gr",
+          "sevhead", "sevhead_R",
+          "luokhit_6score", "hit_score_r",       
+          "tinnitus_baseline", "tinnitus_FU",
+          "traffic3_min_hf", "Traffic3_min_hf_r", 
+          "hearloss_base_fin", "hearloss_follow_fin",
+           "day_head_follow")
+subset = COSMOS_HDS2[, cols]
+data_omit = na.omit(subset)
+empty_cells <- data_omit == "" | data_omit == " "
+data_clear = data_omit[empty_cells] <- NA
+data_omitted = na.omit(data_clear)
+droprows = c("73", "74", "187", "317", "412", "417", "851", "1375", "1445", "1613", "1626", "1661", "1677", "1887", "2455", "2594", "3226")
+data = data_omit[!(rownames(data_omit) %in% droprows), ]
+
+index = sample(c(TRUE, FALSE), nrow(data), TRUE, prob = c(0.8, 0.2))
+train = data[index, ]
+test = data[!index, ]
+```
+
+```{r}
+glm = glm(headache_FU ~., data = train, family = "binomial")
+summary(glm)
+```
+
+
+```{r}
+kAnon(train, k = 5)
+```
+
