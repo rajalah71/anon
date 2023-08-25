@@ -107,10 +107,6 @@ lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, an
     }
   }
 
-  # print(quasiIdentifiers)
-  # print(sensitiveAttributes)
-  # print(anonymizationFunctions)
-
   # Check if the column names of quasiIdentifiers match the anonymizationFunctions
   if (!all(names(anonymizationFunctions) %in% quasiIdentifiers)) {
     stop("Column names of the quasi-identifier and anonymization functions do not match.")
@@ -120,6 +116,13 @@ lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, an
   if (isLDiverse(data, sensitiveAttributes, quasiIdentifiers, l)) {
     print("The dataset is already l-diverse.")
     return(data)
+  }
+
+  # Check whether the sensitive columns have at least l unique values
+  for (sensitiveAttr in sensitiveAttributes) {
+    if (length(unique(data[, sensitiveAttr])) < l) {
+      stop("The sensitive attribute '", sensitiveAttr, "' has less than ", l, " unique values.")
+    }
   }
 
   # Divide the dataset into a list of subsets based on quasi identifiers

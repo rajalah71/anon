@@ -49,3 +49,68 @@ row_checker = function(original_data, reference_data){
 
   }
 }
+
+#-----------------------------------------------------------------
+
+#' Prediction Plot (ggplot)
+#'
+#' Plot the measures of predictive disclosure risk in a nonoverlapping sample to the general populace against the measures of the same type in the reference data.
+#'
+#'
+#' @param original_data The original data
+#' @param k The amount of neighbouring points to consider (recommended range: from 5 to 10)
+#' @param reference_data The anonymized data
+#' @param dist The distance measure to use. (Defaults to eucledian distance)
+#'
+#' @importFrom ggplot2 ggplot aes geom_line labs theme
+#' @importFrom gridExtra grid.arrange
+#' @examples
+#' original_data <- as.data.frame(matrix(1:6, ncol = 2))
+#' reference_data <- as.data.frame(matrix(7:12, ncol = 2))
+#' prediction_plot(original_data, k = 2, reference_data)
+#'
+#' @export
+prediction_plot_gg = function(original_data, k, reference_data, dist = euc_dist) {
+
+  prediction_all_output = prediction_all(original_data, k, reference_data, dist)
+
+  # cumulative sum of distances normalized by the sum of distances
+  y_scaler = function(data) {
+    data = cumsum(sort(data))/sum(data)
+    # if data has any NaNs, replace the data with a sequence from 0 to 1, with length equal to the length of data
+    if(any(is.nan(data))) data = seq(0, 1, length.out = length(data))
+    return(data)
+  }
+
+  # prediction_distance
+  p1 <- ggplot() +
+    geom_line(aes(x = sort(prediction_all_output$original$prediction_distance), y = y_scaler(prediction_all_output$original$prediction_distance)), color = "black") +
+    geom_line(aes(x = sort(prediction_all_output$reference$prediction_distance), y = y_scaler(prediction_all_output$reference$prediction_distance)), color = "red") +
+    xlab("Prediction distance") +
+    ylab("Cumulative sum of prediction distance") +
+    xlim(0, max(prediction_all_output$original$prediction_distance, prediction_all_output$reference$prediction_distance)) +
+    ggtitle("Prediction distance") +
+    theme_minimal()
+
+  # prediction_ambiguity
+  p2 <- ggplot() +
+    geom_line(aes(x = sort(prediction_all_output$original$prediction_ambiguity), y = y_scaler(prediction_all_output$original$prediction_ambiguity)), color = "black") +
+    geom_line(aes(x = sort(prediction_all_output$reference$prediction_ambiguity), y = y_scaler(prediction_all_output$reference$prediction_ambiguity)), color = "red") +
+    xlab("Prediction ambiguity") +
+    ylab("Cumulative sum of prediction ambiguity") +
+    xlim(0, max(prediction_all_output$original$prediction_ambiguity, prediction_all_output$reference$prediction_ambiguity)) +
+    ggtitle("Prediction ambiguity") +
+    theme_minimal()
+
+  # prediction_uncertainty
+  p3 <- ggplot() +
+    geom_line(aes(x = sort(prediction_all_output$original$prediction_uncertainty), y = y_scaler(prediction_all_output$original$prediction_uncertainty)), color = "black") +
+    geom_line(aes(x = sort(prediction_all_output$reference$prediction_uncertainty), y = y_scaler(prediction_all_output$reference$prediction_uncertainty)), color = "red") +
+    xlab("Prediction uncertainty") +
+    ylab("Cumulative sum of prediction uncertainty") +
+    xlim(0, max(prediction_all_output$original$prediction_uncertainty, prediction_all_output$reference$prediction_uncertainty)) +
+    ggtitle("Prediction uncertainty") +
+    theme_minimal()
+
+  grid.arrange(p1, p2, p3, ncol = 1)
+}

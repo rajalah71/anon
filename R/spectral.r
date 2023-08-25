@@ -101,7 +101,7 @@ sensitive_noise = function(data, epsilon = 1){
 #' @export
 spectral = function(data, anonymizer, on_matrices = "U", full = FALSE, sample = FALSE, cat_as_num = FALSE, shuffle = TRUE){
 
-  if(!shuffle) warning("Shuffle is FALSE. Do not release data.")
+  if(!shuffle) warning("Shuffle is FALSE. Do not release data.\n")
 
   # Store the original ordering of the columns for later use (reordeding)
   colnames = colnames(data)
