@@ -16,13 +16,15 @@ COSMOS_HDS2 <- read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/COSMOS_HDS2.csv")
 ```{r, include=FALSE}
 set.seed(1288)
 cols = c("headache_FU", 
-          "Age", "Currsmoker", "Bmi", "Gender", "Depression", "S01MPH0101", "agefirstmpuse", "numbermpyears",  "Alamount", "sf12gr",
+          "Age", "Currsmoker", "Bmi", "Gender", "Depression",  "Alamount", "sf12gr", "hit_score_r",
+          "S01MPH0101", "agefirstmpuse", "numbermpyears",
           "sevhead", "sevhead_R",
-           "hit_score_r",       
-          "tinnitus_baseline", "tinnitus_FU",
-          "traffic3_min_hf", "Traffic3_min_hf_r", 
-          "hearloss_base_fin", "hearloss_follow_fin",
-           "day_head_follow")
+          "traffic3_min_hf", "Traffic3_min_hf_r")
+          #"tinnitus_baseline", "tinnitus_FU",
+          #"hearloss_base_fin", "hearloss_follow_fin",
+          # "day_head_follow")
+
+# mph0101 weekly mobilephone use
 subset = COSMOS_HDS2[, cols]
 
 # Drop sevhead == 1 rows 
@@ -50,6 +52,15 @@ ldiv <- read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/ldiv", row.names=1)
 ```
 
 # Referenssi
+
+```{r}
+# kanon = kAnon(train, k = 5)
+# write.csv(kanon, "C:/Users/Johannes/Desktop/Gradu/DATA/kanon")
+# 
+# ldiv = lDiversity(train, "headache_FU", l = 2)
+# write.csv(ldiv, "C:/Users/Johannes/Desktop/Gradu/DATA/ldiv")
+```
+
 
 ```{r}
 glm = glm(as.factor(headache_FU) ~., data = train, family = "binomial")
