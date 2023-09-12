@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(anon)
 library(randomForest)
 library(pROC)
+library(caret)
 COSMOS_HDS2 <- read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/COSMOS_HDS2.csv")
 ```
 
@@ -56,16 +57,21 @@ ldiv_bin <- read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/ldiv_bin", row.names=
 noise_bin = read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/noise_bin", row.names=1)
 swap_bin = read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/swap_bin", row.names=1)
 rsa_bin = read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/rsa_bin", row.names=1)
-#rsa_bin_test = read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/rsa_bin_test", row.names=1)
+rsa_bin_test = read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/rsa_bin_test", row.names=1)
 
 ```
 
 # Referenssi
 
 ```{r}
-rf = randomForest(as.factor(headache_FU) ~., data = train)
+rf = randomForest(as.factor(headache_FU) ~., data = train, classwt = c(1, 1))
 preds = predict(rf, test[,-1])
-mean(preds == test[,1])
+# Calculate F1 score
+conf_matrix <- confusionMatrix(table(predicted = preds, reference = test[,1]), positive = "Yes")
+f1_score <- conf_matrix$byClass['F1']
+
+cat("F1 Score:", f1_score, "\n")
+rf
 
 ```
 
@@ -76,7 +82,11 @@ mean(preds == test[,1])
 ```{r}
 rf = randomForest(as.factor(headache_FU) ~., data = kanon_bin)
 preds = predict(rf, test[,-1])
-mean(preds == test[,1])
+# Calculate F1 score
+conf_matrix <- confusionMatrix(table(predicted = preds, reference = test[,1]))
+f1_score <- conf_matrix$byClass['F1']
+
+cat("F1 Score:", f1_score, "\n")
 ```
 
 
@@ -87,7 +97,11 @@ mean(preds == test[,1])
 ```{r}
 rf = randomForest(as.factor(headache_FU) ~., data = ldiv_bin)
 preds = predict(rf, test[,-1])
-mean(preds == test[,1])
+# Calculate F1 score
+conf_matrix <- confusionMatrix(table(predicted = preds, reference = test[,1]))
+f1_score <- conf_matrix$byClass['F1']
+
+cat("F1 Score:", f1_score, "\n")
 ```
 
 # Spektraalinen
@@ -97,7 +111,11 @@ mean(preds == test[,1])
 ```{r}
 rf = randomForest(as.factor(headache_FU) ~., data = noise_bin)
 preds = predict(rf, test[,-1])
-mean(preds == test[,1])
+# Calculate F1 score
+conf_matrix <- confusionMatrix(table(predicted = preds, reference = test[,1]))
+f1_score <- conf_matrix$byClass['F1']
+
+cat("F1 Score:", f1_score, "\n")
 ```
 
 
@@ -107,16 +125,29 @@ mean(preds == test[,1])
 ```{r}
 rf = randomForest(as.factor(headache_FU) ~., data = swap_bin)
 preds = predict(rf, test[,-1])
-mean(preds == test[,1])
+# Calculate F1 score
+conf_matrix <- confusionMatrix(table(predicted = preds, reference = test[,1]), positive = "Yes")
+f1_score <- conf_matrix$byClass['F1']
+
+cat("F1 Score:", f1_score, "\n")
 ```
 
 
 ## RSA
 
 ```{r}
-#rf = randomForest(as.factor(headache_FU) ~., data = rsa_bin)
-#preds = predict(rf, test[,-1])
-#mean(preds == test[,1])
+rf = randomForest(as.factor(headache_FU) ~., data = rsa_bin)
+preds = predict(rf, rsa_bin_test[,-1])
+
+# Calculate F1 score
+conf_matrix <- confusionMatrix(table(predicted = preds, reference = as.factor(rsa_bin_test[,1])))
+```
+
+
+```{r}
+f1_score <- conf_matrix$byClass['F1']
+
+cat("F1 Score:", f1_score, "\n")
 ```
 
 
