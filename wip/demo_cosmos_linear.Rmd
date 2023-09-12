@@ -15,15 +15,15 @@ COSMOS_HDS2 <- read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/COSMOS_HDS2.csv")
 
 ```{r, include=FALSE}
 set.seed(1288)
-cols = c(
+cols = c("hit_score_r",
           "Age", "Gender",   "sf12gr", "Depression",  "Bmi", 
-          "sevhead", 
+
           "traffic3_min_hf")
           #"tinnitus_baseline", "tinnitus_FU",
           #"hearloss_base_fin", "hearloss_follow_fin",
           # "day_head_follow")
 
-# "hit_score_r","Alamount", "S01MPH0101", "agefirstmpuse", "numbermpyears",
+# "Alamount", "S01MPH0101", "agefirstmpuse", "numbermpyears",          "sevhead", 
 
 # mph0101 weekly mobilephone use
 subset = COSMOS_HDS2[, cols]
@@ -39,15 +39,66 @@ data_clear = data_omit[empty_cells] <- NA
 data_omitted = na.omit(data_clear)
 droprows = c("73", "74", "187", "317", "412", "417", "851", "1375", "1445", "1613", "1626", "1661", "1677", "1887", "2455", "2594", "3226")
 data = na.omit(data_omit[!(rownames(data_omit) %in% droprows), ])
+data$hit_score_r = sapply(data$hit_score_r,  log)
 
 # encode response variable from 0,1 to no,yes
-data$headache_FU = ifelse(data$headache_FU == 1, "Yes", "No")
+#data$headache_FU = ifelse(data$headache_FU == 1, "Yes", "No")
 
 
 index = sample(c(TRUE, FALSE), nrow(data), TRUE, prob = c(0.8, 0.2))
 train = data[index, ]
 test = data[!index, ]
 
-#kanon_bin <- read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/kanon_bin", row.names=1)
-#ldiv_bin <- read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/ldiv_bin", row.names=1)
+kanon_lin <- read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/kanon_lin", row.names=1)
+ldiv_lin <- read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/ldiv_lin", row.names=1)
+noise_lin = read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/noise_lin", row.names=1)
+swap_lin = read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/swap_lin", row.names=1)
+rsa_lin = read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/rsa_lin", row.names=1)
+
+
 ```
+
+## Referenssi
+
+```{r}
+summary(lm(hit_score_r ~., data = train))
+```
+## k-anon
+
+```{r}
+summary(lm(hit_score_r ~., data = kanon_lin))
+
+```
+
+## l-div
+
+```{r}
+summary(lm(hit_score_r ~., data = ldiv_lin))
+
+```
+
+## Noise
+
+```{r}
+summary(lm(hit_score_r ~., data = noise_lin))
+
+```
+
+## swap
+
+```{r}
+summary(lm(hit_score_r ~., data = swap_lin))
+
+```
+
+## RSA (ei sovellu)
+
+```{r}
+summary(lm(hit_score_r ~., data = rsa_lin))
+
+```
+
+
+
+
+

@@ -16,21 +16,25 @@ COSMOS_HDS2 <- read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/COSMOS_HDS2.csv")
 ```{r, include=FALSE}
 set.seed(1288)
 cols = c("headache_FU", 
-          "Age", "Currsmoker", "Bmi", "Gender", "Depression",  "Alamount", "sf12gr", "hit_score_r",
-          "S01MPH0101", "agefirstmpuse", "numbermpyears",
-          "sevhead", "sevhead_R",
-          "traffic3_min_hf", "Traffic3_min_hf_r")
+          "Age", "Gender",   "sf12gr", "Depression",  "Bmi", 
+          "traffic3_min_hf")
           #"tinnitus_baseline", "tinnitus_FU",
           #"hearloss_base_fin", "hearloss_follow_fin",
           # "day_head_follow")
+
+# "hit_score_r","Alamount", "S01MPH0101", "agefirstmpuse", "numbermpyears",          "sevhead", 
+
+
+# tarvitaan:
+# age, gender, country, Painkiller, sf12v2, Depression, Mos-sleep, education, BMI, smoking, alcohol total consumption, hypertension
 
 # mph0101 weekly mobilephone use
 subset = COSMOS_HDS2[, cols]
 
 # Drop sevhead == 1 rows 
-subset = subset[ subset$sevhead !=  1,]
+#subset = subset[ subset$sevhead !=  1,]
 # Drop sevhead col
-subset$sevhead = NULL
+#subset$sevhead = NULL
 
 data_omit = na.omit(subset)
 empty_cells <- data_omit == "" | data_omit == " "
@@ -47,25 +51,28 @@ index = sample(c(TRUE, FALSE), nrow(data), TRUE, prob = c(0.8, 0.2))
 train = data[index, ]
 test = data[!index, ]
 
-kanon <- read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/kanon", row.names=1)
-ldiv <- read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/ldiv", row.names=1)
+kanon_bin <- read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/kanon_bin", row.names=1)
+ldiv_bin <- read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/ldiv_bin", row.names=1)
+noise_bin = read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/noise_bin", row.names=1)
+swap_bin = read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/swap_bin", row.names=1)
+rsa_bin = read.csv("C:/Users/Johannes/Desktop/Gradu/DATA/rsa_bin", row.names=1)
 ```
 
 # Referenssi
 
 ```{r}
-# kanon = kAnon(train, k = 5)
-# write.csv(kanon, "C:/Users/Johannes/Desktop/Gradu/DATA/kanon")
-# 
-# ldiv = lDiversity(train, "headache_FU", l = 2)
-# write.csv(ldiv, "C:/Users/Johannes/Desktop/Gradu/DATA/ldiv")
-```
-
-
-```{r}
 glm = glm(as.factor(headache_FU) ~., data = train, family = "binomial")
 summary(glm)
 preds = predict(glm, test[,-1])
+
+```
+
+```{r eval=FALSE, include=FALSE}
+star = stargazer::stargazer(glm, type = "text")
+writeLines(capture.output(broom::tidy(glm)), "model_summary_broom.txt")
+writeLines(star, "model_summary_star.txt")
+preds = predict(glm, test[,-1])
+
 ```
 
 
@@ -79,9 +86,9 @@ auc(roc)
 
 
 ```{r}
-glm = glm(as.factor(headache_FU) ~., data = kanon, family = "binomial")
-summary(glm)
-preds = predict(glm, test[,-1])
+glm_k = glm(as.factor(headache_FU) ~., data = kanon_bin, family = "binomial")
+summary(glm_k)
+preds = predict(glm_k, test[,-1])
 ```
 
 
@@ -91,15 +98,12 @@ plot(roc)
 auc(roc)
 ```
 
-```{r}
-prediction_plot(train, 5, kanon)
-```
 
 
 # $l$-diversiteetti
 
 ```{r}
-glm = glm(as.factor(headache_FU) ~., data = ldiv, family = "binomial")
+glm = glm(as.factor(headache_FU) ~., data = ldiv_bin, family = "binomial")
 summary(glm)
 preds = predict(glm, test[,-1])
 ```
@@ -111,9 +115,7 @@ plot(roc)
 auc(roc)
 ```
 
-```{r}
-prediction_plot(train, 5, ldiv)
-```
+
 
 
 # Spektraalinen
@@ -121,12 +123,10 @@ prediction_plot(train, 5, ldiv)
 ## Kohina
 
 ```{r}
-noise = spectral(data, function(x) sensitive_noise(x, 3), on_matrices = "UD", shuffle = FALSE)
-
-glm = glm(as.factor(headache_FU) ~., data = noise, family = "binomial")
+glm = glm(as.factor(headache_FU) ~., data = noise_bin, family = "binomial")
 summary(glm)
 preds = predict(glm, test[,-1])
-reidentification_rate(data, noise)
+#reidentification_rate(train, noise_bin)
 ```
 
 
@@ -136,16 +136,12 @@ plot(roc)
 auc(roc)
 ```
 
-```{r}
-prediction_plot(train, 5, noise)
-```
+
 
 ## Sarakepermutaatio
 
 ```{r}
-swap = spectral(data, cell_swap)
-
-glm = glm(as.factor(headache_FU) ~., data = swap, family = "binomial")
+glm = glm(as.factor(headache_FU) ~., data = swap_bin, family = "binomial")
 summary(glm)
 preds = predict(glm, test[,-1])
 ```
@@ -153,28 +149,6 @@ preds = predict(glm, test[,-1])
 
 ```{r}
 roc = roc(test[,1], preds)
-plot(roc)
-auc(roc)
-```
-
-```{r}
-prediction_plot(train, 5, swap)
-```
-
-# RSA
-
-```{r}
-rsa = encrypt(data)
-rsa_train = rsa[index, ]
-rsa_test = rsa[!index, ]
-
-glm = glm(as.factor(headache_FU) ~., data = rsa_train, family = "binomial")
-summary(glm)
-preds = predict(glm, rsa_test[,-1])
-```
-
-```{r}
-roc = roc(rsa_test[,1], preds)
 plot(roc)
 auc(roc)
 ```
