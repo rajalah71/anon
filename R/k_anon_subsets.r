@@ -36,6 +36,8 @@ is_k_anonymous = function(data, quasi_id_cols, k) {
 #' @param k The desired level of k-anonymity.
 #' @param quasiIdentifiers A character vector specifying the column names of the quasi-identifiers (default: NULL).
 #' @param anonymizationFunctions A named list of anonymization functions for each quasi-identifier column (default: NULL).
+#' @param shuffle Whether to shuffle the dataset before returning. Warning if FALSE, used to calculate empirical reidentification rate.
+#'
 #'
 #'
 #' @return A k-anonymous data frame.
@@ -54,10 +56,13 @@ is_k_anonymous = function(data, quasi_id_cols, k) {
 #' kAnonData <- kAnon(iris, quasiIdentifiers = c("Species", "Petal.Width"), anonymizationFunctions, k = 3)
 #'}
 #' @export
-kAnon <- function(data, k, quasiIdentifiers = NULL, anonymizationFunctions = NULL) {
+kAnon <- function(data, k, quasiIdentifiers = NULL, anonymizationFunctions = NULL, shuffle = TRUE) {
 
   # For runtime
   start_time <- Sys.time()
+
+  # if shuffle FALSE, warning
+  if(!shuffle) warning("Shuffle is FALSE. Do not release data.\n")
 
   # If quasiIdentifiers and anonymizationFunctions are not provided, calculate the cardinality of each column
   # and identify numeric and categorical columns for default behavior.
@@ -186,7 +191,8 @@ kAnon <- function(data, k, quasiIdentifiers = NULL, anonymizationFunctions = NUL
   # Just a final check
   if (is_k_anonymous(kAnonData, quasiIdentifiers, k)) {
     print(Sys.time() - start_time)
-    return(shuffle(kAnonData))
+    if(shuffle) return(shuffle(kAnonData))
+    else return(reorder_rownames(kAnonData))
   } else {
     print(Sys.time() - start_time)
     stop("k-anonymity could not be obtained.")

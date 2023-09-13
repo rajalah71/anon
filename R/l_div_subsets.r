@@ -56,6 +56,7 @@ isLDiverse <- function(data, sensitiveAttributes, quasiIdentifiers, l) {
 #' @param k (Default 5) The minimum number of rows in an l diverse subset. Not stricly an l-diversity
 #'          requirement, but here to accomodate for Finnish law / customs on
 #'          anonymous data publishing.
+#' @param shuffle Whether to shuffle the dataset before returning. Warning if FALSE, used to calculate empirical reidentification rate.
 #'
 #'
 #' @return A dataset that is l-diverse with respect to the specified quasi-identifier columns and sensitive attributes,
@@ -79,10 +80,13 @@ isLDiverse <- function(data, sensitiveAttributes, quasiIdentifiers, l) {
 #' ldiverse_data <- makeLdiverse(data, c("age", "gender"), "disease", list(age = age_fun, gender = gender_fun), 2)
 #'}
 #' @export
-lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymizationFunctions = NULL, k=5) {
+lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymizationFunctions = NULL, k=5, shuffle = TRUE) {
 
   # For runtime
   start_time <- Sys.time()
+
+  # if shuffle FALSE, warning
+  if(!shuffle) warning("Shuffle is FALSE. Do not release data.\n")
 
   # If quasiIdentifiers are not provided, calculate the cardinality of each column
   # and identify numeric and categorical columns for default behavior.
@@ -235,7 +239,8 @@ lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, an
   # Just a final check
   if (isLDiverse(lDiverseData, sensitiveAttributes, quasiIdentifiers, l)) {
     print(Sys.time() - start_time)
-    return(shuffle(lDiverseData))
+    if(shuffle) return(shuffle(lDiverseData))
+    else return(reorder_rownames(lDiverseData))
   } else{
     print(Sys.time() - start_time)
     stop("l-diversity could not be obtained.")

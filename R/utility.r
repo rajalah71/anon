@@ -345,3 +345,24 @@ most_common = function(column){
   return(repeated)
 
 }
+
+# --------------------------------------------------
+
+#' Reorder Rows Based on Row Names
+#'
+#' @param df The input dataframe.
+#' @return A dataframe with rows reordered based on the extracted row numbers.
+#'
+#'
+reorder_rownames <- function(df) {
+  # Extract the numbers from rownames and convert them to integers
+  row_numbers <- as.integer(sub(".*\\.(\\d+)$", "\\1", rownames(df)))
+
+  # Order the dataframe based on the extracted numbers
+  df <- df[order(row_numbers), ]
+
+  # Remove the rownames
+  rownames(df) <- NULL
+
+  return(df)
+}

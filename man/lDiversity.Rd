@@ -10,7 +10,8 @@ lDiversity(
   l,
   quasiIdentifiers = NULL,
   anonymizationFunctions = NULL,
-  k = 5
+  k = 5,
+  shuffle = TRUE
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ Each function should take a vector as input and return a modified vector with th
 \item{k}{(Default 5) The minimum number of rows in an l diverse subset. Not stricly an l-diversity
 requirement, but here to accomodate for Finnish law / customs on
 anonymous data publishing.}
+
+\item{shuffle}{Whether to shuffle the dataset before returning. Warning if FALSE, used to calculate empirical reidentification rate.}
 }
 \value{
 A dataset that is l-diverse with respect to the specified quasi-identifier columns and sensitive attributes,
