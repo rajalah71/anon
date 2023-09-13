@@ -8,6 +8,7 @@ spectral(
   data,
   anonymizer,
   on_matrices = "U",
+  preserveMeans = TRUE,
   full = FALSE,
   sample = FALSE,
   cat_as_num = FALSE,
@@ -27,6 +28,8 @@ The default is "U". Note that the transposition is not
 shown here on V for ease of parametrization, but the
 modifications will be made on it's transpose, V'.}
 
+\item{preserveMeans}{Extract colmeans before svd or not, and add them back afte svd anoymization. Use for cell swap at least, might be usefull for other functions as well. Defaults TRUE.}
+
 \item{full}{Logical: Whether to use the full SVD or the reduced SVD (default).}
 
 \item{sample}{Logical: Whether to sample a value for a categorical variable represented in the probabilistic state or take the value with the most weight.}
@@ -34,8 +37,7 @@ modifications will be made on it's transpose, V'.}
 \item{cat_as_num}{Logical: Whether categorical variables should be returned
 in their probabilistic state or not.}
 
-\item{shuffle}{Logical: Whether to shuffle the resulting data before returning.
-Warning if FALSE.}
+\item{shuffle}{Logical: Whether to shuffle the dataset before returning. Warning if FALSE, used to calculate empirical reidentification rate.}
 }
 \value{
 A new data frame containing the anonymized data.

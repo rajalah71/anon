@@ -91,15 +91,16 @@ sensitive_noise = function(data, epsilon = 1){
 #'
 #' @param full Logical: Whether to use the full SVD or the reduced SVD (default).
 #'
-#' @param shuffle Logical: Whether to shuffle the resulting data before returning.
-#'                Warning if FALSE.
+#' @param shuffle Logical: Whether to shuffle the dataset before returning. Warning if FALSE, used to calculate empirical reidentification rate.
+#'
+#' @param preserveMeans Extract colmeans before svd or not, and add them back afte svd anoymization. Use for cell swap at least, might be usefull for other functions as well. Defaults TRUE.
 #'
 #' @return A new data frame containing the anonymized data.
 #'
 #' @importFrom onehot onehot
 #'
 #' @export
-spectral = function(data, anonymizer, on_matrices = "U", full = FALSE, sample = FALSE, cat_as_num = FALSE, shuffle = TRUE){
+spectral = function(data, anonymizer, on_matrices = "U", preserveMeans = TRUE,  full = FALSE, sample = FALSE, cat_as_num = FALSE, shuffle = TRUE){
 
   if(!shuffle) warning("Shuffle is FALSE. Do not release data.\n")
 
@@ -127,10 +128,11 @@ spectral = function(data, anonymizer, on_matrices = "U", full = FALSE, sample = 
   }
 
   # Calculate the column means for centering the data
-  means = colMeans(encoded)
+  if(preserveMeans) means = colMeans(encoded)
+  else means = rep(0, ncol(encoded))
 
   # Center the data by subtracting the column means from each column
-  encoded = scale(encoded, center = TRUE, scale = FALSE)
+  if(preserveMeans) encoded = scale(encoded, center = TRUE, scale = FALSE)
 
   # Perform Singular Value Decomposition (SVD) on the centered data, M = UDV'
   if(!full){
