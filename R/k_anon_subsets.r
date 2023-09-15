@@ -29,13 +29,13 @@ is_k_anonymous = function(data, quasi_id_cols, k) {
 
 #' Perform k-Anonymization on a dataset
 #'
-#' This function applies k-anonymization to a dataset by dividing it into subsets
-#' based on quasi-identifiers and modifying the data to achieve k-anonymity
+#' This function applies (user provided or default) generalization functions to a dataset to achieve k-anonymity.
 #'
-#' @param data A data frame containing the sensitive data.
+#' @param data The input dataset.
 #' @param k The desired level of k-anonymity.
-#' @param quasiIdentifiers A character vector specifying the column names of the quasi-identifiers (default: NULL).
-#' @param anonymizationFunctions A named list of anonymization functions for each quasi-identifier column (default: NULL).
+#' @param quasiIdentifiers A character vector specifying the column names of the quasi-identifiers (default: NULL). The first column named will be modified first and the last last:
+#' name the columns in ascending order of importance. If quasi-identifiers are nor provided, all columns will be assumed to be quasi-identifiers and modified in descending order of cardinality.
+#' @param anonymizationFunctions A named list of anonymization functions for each quasi-identifier column (default: NULL). If not provided, mean and mode will be used for numericals and non-numericals respectively.
 #' @param shuffle Whether to shuffle the dataset before returning. Warning if FALSE, used to calculate empirical reidentification rate.
 #'
 #'
@@ -47,12 +47,14 @@ is_k_anonymous = function(data, quasi_id_cols, k) {
 #' @details The `kAnon` function applies k-anonymization on the input dataset `data`
 #' by dividing it into subsets based on quasi-identifiers specified in `quasiIdentifiers`.
 #' The function modifies the data in each subset to achieve k-anonymity
-#' based on the anonymization functions provided in `anonymizationFunctions`.
+#' based on the anonymization functions provided in `anonymizationFunctions`. Quasi-identifiers are
+#' columns which combined can identify a person in the data. Quasi-identifiers
+#' include but are not limited to: age, gender, zip-code, profession...
 #'
 #' @examples
 #' \dontrun{
 #' data(iris)
-#' anonymizationFunctions <- list(Species = function(x) "*", Petal.Width = function(x) "*")
+#' anonymizationFunctions <- list(Species = function(x) "*", Petal.Width = function(x) mean(x))
 #' kAnonData <- kAnon(iris, quasiIdentifiers = c("Species", "Petal.Width"), anonymizationFunctions, k = 3)
 #'}
 #' @export
@@ -64,19 +66,20 @@ kAnon <- function(data, k, quasiIdentifiers = NULL, anonymizationFunctions = NUL
   # if shuffle FALSE, warning
   if(!shuffle) warning("Shuffle is FALSE. Do not release data.\n")
 
-  # If quasiIdentifiers and anonymizationFunctions are not provided, calculate the cardinality of each column
-  # and identify numeric and categorical columns for default behavior.
+  # If quasiIdentifiers or anonymizationFunctions are not provided, calculate the cardinality of each column
+  # and identify numeric and categorical columns
   if (is.null(quasiIdentifiers) || is.null(anonymizationFunctions)) {
     col_cardinality <- sapply(data, function(x) length(unique(x)))
     numeric_cols <- names(data)[sapply(data, is.numeric)]
     categorical_cols <- names(data)[!sapply(data, is.numeric)]
   }
 
-  # Use default behavior if quasiIdentifiers and anonymizationFunctions are not provided
+  # Use all columns as quasi-identifiers and order them based on their cardinality if quasi-identifiers are not provided.
   if (is.null(quasiIdentifiers)) {
     quasiIdentifiers <- names(col_cardinality)[order(-col_cardinality)]
   }
 
+  # If anonymization functions are not provided, use mean for numerical columns and mode for un-ordered categoricals.
   if (is.null(anonymizationFunctions)) {
     anonymizationFunctions <- list()
     for (col in quasiIdentifiers) {
@@ -128,7 +131,6 @@ kAnon <- function(data, k, quasiIdentifiers = NULL, anonymizationFunctions = NUL
       # subsets[i] keeps increasing in size and subsets keep getting popped until subsets[i] can be mande k-anonymous given the quasi_ids and functions
       nearestSubsetIndex <- findNearestSubset(subsets[i], subsets, quasiIdentifiers)
       if(nearestSubsetIndex == 0){
-        # message("All subsets combined and no k-anonymity obtained")
         break
       }
 

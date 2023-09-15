@@ -13,13 +13,14 @@ kAnon(
 )
 }
 \arguments{
-\item{data}{A data frame containing the sensitive data.}
+\item{data}{The input dataset.}
 
 \item{k}{The desired level of k-anonymity.}
 
-\item{quasiIdentifiers}{A character vector specifying the column names of the quasi-identifiers (default: NULL).}
+\item{quasiIdentifiers}{A character vector specifying the column names of the quasi-identifiers (default: NULL). The first column named will be modified first and the last last:
+name the columns in ascending order of importance. If quasi-identifiers are nor provided, all columns will be assumed to be quasi-identifiers and modified in descending order of cardinality.}
 
-\item{anonymizationFunctions}{A named list of anonymization functions for each quasi-identifier column (default: NULL).}
+\item{anonymizationFunctions}{A named list of anonymization functions for each quasi-identifier column (default: NULL). If not provided, mean and mode will be used for numericals and non-numericals respectively.}
 
 \item{shuffle}{Whether to shuffle the dataset before returning. Warning if FALSE, used to calculate empirical reidentification rate.}
 }
@@ -27,19 +28,20 @@ kAnon(
 A k-anonymous data frame.
 }
 \description{
-This function applies k-anonymization to a dataset by dividing it into subsets
-based on quasi-identifiers and modifying the data to achieve k-anonymity
+This function applies (user provided or default) generalization functions to a dataset to achieve k-anonymity.
 }
 \details{
 The `kAnon` function applies k-anonymization on the input dataset `data`
 by dividing it into subsets based on quasi-identifiers specified in `quasiIdentifiers`.
 The function modifies the data in each subset to achieve k-anonymity
-based on the anonymization functions provided in `anonymizationFunctions`.
+based on the anonymization functions provided in `anonymizationFunctions`. Quasi-identifiers are
+columns which combined can identify a person in the data. Quasi-identifiers
+include but are not limited to: age, gender, zip-code, profession...
 }
 \examples{
 \dontrun{
 data(iris)
-anonymizationFunctions <- list(Species = function(x) "*", Petal.Width = function(x) "*")
+anonymizationFunctions <- list(Species = function(x) "*", Petal.Width = function(x) mean(x))
 kAnonData <- kAnon(iris, quasiIdentifiers = c("Species", "Petal.Width"), anonymizationFunctions, k = 3)
 }
 }

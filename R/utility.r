@@ -366,3 +366,35 @@ reorder_rownames <- function(df) {
   return(df)
 }
 
+#-----------------------------------------------------
+
+sensitive_generalizer = function(sensitiveColumn, subsetSize = 2){
+  # Divide the column into subsets to sizes of "subsetSize"
+
+  # If numerical, sort, store the original order, divide into subsets of size "subsetSize" and then replace every value in every subset with its mean
+  if(is.numeric(sensitiveColumn)){
+    sorted = sort(sensitiveColumn)
+    originalOrder = order(sensitiveColumn)
+    sorted = sorted[seq(1, length(sorted), subsetSize)]
+    for(i in 1:length(sorted)){
+      sorted[i] = mean(sorted[i:(i+subsetSize-1)])
+    }
+    sorted = sorted[seq(1, length(sorted), subsetSize)]
+    sorted = sorted[order(originalOrder)]
+    return(sorted)
+  }
+
+  # If categorical, sort by occurance, store the original order, combine subsets such that every subset has at least "subsetSize"
+  if(!is.numeric(sensitiveColumn)){
+    sorted = sort(sensitiveColumn)
+    originalOrder = order(sensitiveColumn)
+    sorted = sorted[seq(1, length(sorted), subsetSize)]
+    for(i in 1:length(sorted)){
+      sorted[i] = mean(sorted[i:(i+subsetSize-1)])
+    }
+    sorted = sorted[seq(1, length(sorted), subsetSize)]
+    sorted = sorted[order(originalOrder)]
+    return(sorted)
+  }
+
+}

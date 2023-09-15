@@ -2,7 +2,7 @@
 % Please edit documentation in R/l_div_subsets.r
 \name{lDiversity}
 \alias{lDiversity}
-\title{Make a dataset l-diverse by applying anonymization functions}
+\title{Make a dataset l-diverse by applying (user provided or default) anonymization functions to a set of quasi-identifiers.}
 \usage{
 lDiversity(
   data,
@@ -21,10 +21,10 @@ lDiversity(
 
 \item{l}{The desired minimum number of distinct values for each sensitive attribute within each group.}
 
-\item{quasiIdentifiers}{A character vector specifying the names of the quasi-identifier columns (default: NULL).}
+\item{quasiIdentifiers}{A character vector specifying the column names of the quasi-identifiers (default: NULL). The first column named will be modified first and the last last:
+name the columns in ascending order of importance. If quasi-identifiers are nor provided, all columns will be assumed to be quasi-identifiers and modified in descending order of cardinality.}
 
-\item{anonymizationFunctions}{A named list of functions corresponding to the quasi-identifier columns.
-Each function should take a vector as input and return a modified vector with the same length.}
+\item{anonymizationFunctions}{A named list of anonymization functions for each quasi-identifier column (default: NULL). If not provided, mean and mode will be used for numericals and non-numericals respectively.}
 
 \item{k}{(Default 5) The minimum number of rows in an l diverse subset. Not stricly an l-diversity
 requirement, but here to accomodate for Finnish law / customs on
@@ -33,29 +33,25 @@ anonymous data publishing.}
 \item{shuffle}{Whether to shuffle the dataset before returning. Warning if FALSE, used to calculate empirical reidentification rate.}
 }
 \value{
-A dataset that is l-diverse with respect to the specified quasi-identifier columns and sensitive attributes,
-  or an error is thrown if the desired level of l-diversity cannot be achieved.
+An l-diverse data frame.
 }
 \description{
+Make a dataset l-diverse by applying (user provided or default) anonymization functions to a set of quasi-identifiers.
+}
+\details{
 This function takes a dataset and applies a set of anonymity functions to the specified
 quasi-identifier columns in order to achieve l-diversity with respect to the sensitive attributes.
-It checks if the dataset is already l-diverse and returns the dataset as is in that case.
-If not, it iteratively combines subsets of the dataset and applies the anonymity functions
-until the desired level of l-diversity is achieved.
+It iteratively combines subsets of the dataset and applies the anonymity functions
+until the desired level of l-diversity is achieved. Quasi-identifiers are
+columns which combined can identify a person in the data. Quasi-identifiers
+include but are not limited to: age, gender, zip-code, profession...
+Sensitive attributes are attributes which values could cause harm to a person
+if revealed. Sensitive attributes may include: health information, beliefs,
+sexual orientation...
 }
 \examples{
 \dontrun{
-data <- data.frame(
-  age = c(25, 30, 35, 40, 45),
-  gender = c("M", "M", "F", "F", "M"),
-  disease = c("A", "A", "B", "C", "C")
-)
-
-# Define functions for generalizing age and gender
-age_fun <- function(x) floor(x / 10) * 10
-gender_fun <- function(x) "*"
-
-# Apply makeLdiverse function
-ldiverse_data <- makeLdiverse(data, c("age", "gender"), "disease", list(age = age_fun, gender = gender_fun), 2)
+data("iris")
+lDiversity(iris, "Species", l = 2)
 }
 }
