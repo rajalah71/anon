@@ -145,7 +145,6 @@ inverse_onehot = function(data, names, sample=FALSE){
   }
 
   # order the columns in the original order using colmn reordered
-
   return(data)
 }
 
@@ -366,3 +365,4 @@ reorder_rownames <- function(df) {
 
   return(df)
 }
+
