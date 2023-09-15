@@ -21,13 +21,3 @@ This function takes a data frame and checks if it satisfies k-anonymity with res
 to the specified quasi-identifier columns. It groups the data by the quasi-identifiers,
 counts the number of rows in each group, and checks if all groups have at least k rows.
 }
-\examples{
-df <- data.frame(
-  age = c(25, 30, 35, 40, 45),
-  gender = c("M", "M", "F", "F", "M"),
-  income = c(50000, 60000, 70000, 80000, 90000)
-)
-
-is_k_anonymous(df, c("age", "gender"), 2)
-
-}

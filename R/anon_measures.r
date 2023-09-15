@@ -26,9 +26,9 @@ euc_dist = function(x,y){
 
 #----------------------------------------------------------
 
-#' Calculate the minimum distance between rows of two datasets.
+#' Calculate the distances between rows of two datasets.
 #'
-#' This function calculates the minimum distance between each row of the
+#' This function calculates the distances between each row of the
 #' \code{original_data} and every row of the \code{reference_data} using a specified
 #' distance function (\code{dist}). The datasets are first one-hot encoded to enable
 #' distance calculations. The function then scales the datasets to have mean 0 and
@@ -268,55 +268,90 @@ prediction_all = function(original_data, k, reference_data, dist = euc_dist){
 
 #' Prediction Plot
 #'
-#' Plot the measures in the original data against measures of the same type in the reference data.
+#' Plot the measures of predictive disclosure risk in an nonoverlapping sample to the general populace against the measures of the same type in the reference data.
 #'
 #'
-#' @param prediction_all_output The output from the prediction_all function, containing the measures for original and reference data.
+#' @param original_data The original data
+#' @param k The amount of neighbouring points to consider (recommended range: from 5 to 10)
+#' @param reference_data The anonymized data
+#' @param dist The distance measure to use. (Defaults to eucledian distance)
 #'
 #' @importFrom graphics plot legend lines par title
+#' @importFrom stats ecdf
 #' @examples
 #' original_data <- as.data.frame(matrix(1:6, ncol = 2))
 #' reference_data <- as.data.frame(matrix(7:12, ncol = 2))
-#' preds = prediction_all(original_data, k = 2, reference_data)
-#' prediction_plot(preds)
+#' prediction_plot(original_data, k = 2, reference_data)
 #'
 #' @export
-prediction_plot = function(prediction_all_output){
+prediction_plot = function(original_data, k, reference_data, dist = euc_dist){
   # plot the measures in original against measures of the same type in reference make par(mfrow = c(3,1)) before calling this function and revert it after calling this function
   par(mfrow = c(3,1))
 
-  # cumulative sum of distances normalized by the sum of distances
-  y_scaler = function(data){
-    data = cumsum(sort(data))/sum(data)
-    # if data has any NaNs, replace the data with a sequence from 0 to 1, with length equal to the length of data
-    if(any(is.nan(data))) data = seq(0, 1, length.out = length(data))
-    return(data)
+  prediction_all_output = prediction_all(original_data, k, reference_data, dist)
+
+  # Helper function to make vertical lines if needed
+  vert_maker = function(y){
+    # If only one unique value is present, return a sequence from 0 to 1 instead
+    table = table(y)
+    if(length(table) == 1){
+      vert = seq(0,1,length.out = length(y))
+      return(vert)
+    }
+    # Else return the original data unchanged
+    return(y)
   }
 
+  # estimate cdf from data and calculate 1000 equidistant points from it
+  ecdf_points <- function(data) {
+    # Create an ECDF function
+    ecdf_func <- ecdf(data)
+
+    # Generate a sequence of values for x-axis
+    x <- seq(min(data), max(data), length.out = 1000)
+
+    # Calculate the estimated CDF values for the x-axis values
+    y <- ecdf_func(x)
+
+    # return x and y
+    return(list(x,y))
+
+  }
+  og = ecdf_points(prediction_all_output$original$prediction_distance)
+  ref = ecdf_points(prediction_all_output$reference$prediction_distance)
   # prediction_distance
-  plot(sort(prediction_all_output$original$prediction_distance), y_scaler(prediction_all_output$original$prediction_distance), type = "l",  xlab = "Prediction distance", ylab = "Cumulative sum of prediction distance", xlim = c(0, max(prediction_all_output$original$prediction_distance, prediction_all_output$reference$prediction_distance)))
-  lines(sort(prediction_all_output$reference$prediction_distance), y_scaler(prediction_all_output$reference$prediction_distance), type = "l", col = "red")
-  legend("topleft", legend = c("Non overlapping sample", "Anonymized data"), col = c("black", "red"), lty = 1, cex = 0.8)
+
+  plot(og[[1]], vert_maker(og[[2]]), type = "l",  xlab = "Prediction distance", ylab = "Cumulative sum of prediction distance", xlim = c(0, max(prediction_all_output$original$prediction_distance, prediction_all_output$reference$prediction_distance)))
+  lines(ref[[1]], vert_maker(ref[[2]]), type = "l", col = "red")
+  legend("topleft", legend = c("Non overlapping sample", "Anonymized data"), col = c("black", "red"), lty = 1, cex = 0.8, bg = "transparent")
   title("Prediction distance")
 
+  og = ecdf_points(prediction_all_output$original$prediction_ambiguity)
+  ref = ecdf_points(prediction_all_output$reference$prediction_ambiguity)
   # prediction_ambiguity
-  plot(sort(prediction_all_output$original$prediction_ambiguity), y_scaler(prediction_all_output$original$prediction_ambiguity), type = "l",  xlab = "Prediction ambiguity", ylab = "Cumulative sum of prediction ambiguity", xlim = c(0, max(prediction_all_output$original$prediction_ambiguity, prediction_all_output$reference$prediction_ambiguity)))
-  lines(sort(prediction_all_output$reference$prediction_ambiguity), y_scaler(prediction_all_output$reference$prediction_ambiguity), type = "l", col = "red")
-  legend("topleft", legend = c("Non overlapping sample", "Anonymized data"), col = c("black", "red"), lty = 1, cex = 0.8)
+
+  plot(og[[1]], vert_maker(og[[2]]), type = "l",  xlab = "Prediction ambiguity", ylab = "Cumulative sum of prediction ambiguity", xlim = c(0, max(prediction_all_output$original$prediction_ambiguity, prediction_all_output$reference$prediction_ambiguity)))
+  lines(ref[[1]], vert_maker(ref[[2]]), type = "l", col = "red")
+  legend("topleft", legend = c("Non overlapping sample", "Anonymized data"), col = c("black", "red"), lty = 1, cex = 0.8, bg = "transparent")
   title("Prediction ambiguity")
 
+  og = ecdf_points(prediction_all_output$original$prediction_uncertainty)
+  ref = ecdf_points(prediction_all_output$reference$prediction_uncertainty)
   # prediction_uncertainty
-  plot(sort(prediction_all_output$original$prediction_uncertainty), y_scaler(prediction_all_output$original$prediction_uncertainty), type = "l",  xlab = "Prediction uncertainty", ylab = "Cumulative sum of prediction uncertainty", xlim = c(0, max(prediction_all_output$original$prediction_uncertainty, prediction_all_output$reference$prediction_uncertainty)))
-  lines(sort(prediction_all_output$reference$prediction_uncertainty), y_scaler(prediction_all_output$reference$prediction_uncertainty), type = "l", col = "red")
-  legend("topleft", legend = c("Non overlapping sample", "Anonymized data"), col = c("black", "red"), lty = 1, cex = 0.8)
+
+  plot(og[[1]], vert_maker(og[[2]]), type = "l",  xlab = "Prediction uncertainty", ylab = "Cumulative sum of prediction uncertainty", xlim = c(0, max(prediction_all_output$original$prediction_uncertainty, prediction_all_output$reference$prediction_uncertainty)))
+  lines(ref[[1]], vert_maker(ref[[2]]), type = "l", col = "red")
+  legend("topleft", legend = c("Non overlapping sample", "Anonymized data"), col = c("black", "red"), lty = 1, cex = 0.8, bg = "transparent")
   title("Prediction uncertainty")
 
   par(mfrow = c(1,1))
 }
 
 
-#-----------------------------------------------------------------
 
+
+
+#-----------------------------------------------------------------
 
 #' Calculate the reidentification rate of a dataset after anonymization
 #'

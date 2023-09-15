@@ -16,12 +16,6 @@
 #' is l-diverse for the sensitive attribute `sensitiveAttribute`
 #' based on the quasi-identifiers specified in `quasiIdentifiers` and the desired level of l-diversity `l`.
 #'
-#' @examples
-#' \dontrun{
-#' data(iris)
-#' isLDiverse(iris, "Species", c("Petal.Width", "Sepal.Length"), 2)
-#'}
-#' @export
 isLDiverse <- function(data, sensitiveAttributes, quasiIdentifiers, l) {
 
   for (sensitiveAttr in sensitiveAttributes) {
@@ -47,7 +41,7 @@ isLDiverse <- function(data, sensitiveAttributes, quasiIdentifiers, l) {
 
 #' Make a dataset l-diverse by applying anonymization functions
 #'
-#' This function takes a dataset and applies a set of diversity functions to the specified
+#' This function takes a dataset and applies a set of anonymity functions to the specified
 #' quasi-identifier columns in order to achieve l-diversity with respect to the sensitive attributes.
 #' It checks if the dataset is already l-diverse and returns the dataset as is in that case.
 #' If not, it iteratively combines subsets of the dataset and applies the anonymity functions
@@ -62,10 +56,7 @@ isLDiverse <- function(data, sensitiveAttributes, quasiIdentifiers, l) {
 #' @param k (Default 5) The minimum number of rows in an l diverse subset. Not stricly an l-diversity
 #'          requirement, but here to accomodate for Finnish law / customs on
 #'          anonymous data publishing.
-#' @param shuffle (Default TRUE) A parameter which determines whether the data
-#'                  will be shuffled or not before returning. Will give warning
-#'                  uf FALSE, as no data should be released without shuffling.
-#'                  For diagnostic use, or for calculating reidentification rate.
+#' @param shuffle Whether to shuffle the dataset before returning. Warning if FALSE, used to calculate empirical reidentification rate.
 #'
 #'
 #' @return A dataset that is l-diverse with respect to the specified quasi-identifier columns and sensitive attributes,
@@ -94,10 +85,8 @@ lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, an
   # For runtime
   start_time <- Sys.time()
 
-  # Do not release unshuffled data. For diagnostics only.
-  if(shuffle == FALSE){
-    warning("Shuffle is FALSE, do not release data.")
-  }
+  # if shuffle FALSE, warning
+  if(!shuffle) warning("Shuffle is FALSE. Do not release data.\n")
 
   # If quasiIdentifiers are not provided, calculate the cardinality of each column
   # and identify numeric and categorical columns for default behavior.
@@ -117,14 +106,10 @@ lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, an
       if (col %in% numeric_cols) {
         anonymizationFunctions[[col]] <- function(x) mean(x)
       } else {
-        anonymizationFunctions[[col]] <- function(x) combine_lowest_classes(x)
+        anonymizationFunctions[[col]] <- function(x) most_common(x)
       }
     }
   }
-
-  # print(quasiIdentifiers)
-  # print(sensitiveAttributes)
-  # print(anonymizationFunctions)
 
   # Check if the column names of quasiIdentifiers match the anonymizationFunctions
   if (!all(names(anonymizationFunctions) %in% quasiIdentifiers)) {
@@ -135,6 +120,13 @@ lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, an
   if (isLDiverse(data, sensitiveAttributes, quasiIdentifiers, l)) {
     print("The dataset is already l-diverse.")
     return(data)
+  }
+
+  # Check whether the sensitive columns have at least l unique values
+  for (sensitiveAttr in sensitiveAttributes) {
+    if (length(unique(data[, sensitiveAttr])) < l) {
+      stop("The sensitive attribute '", sensitiveAttr, "' has less than ", l, " unique values.")
+    }
   }
 
   # Divide the dataset into a list of subsets based on quasi identifiers
@@ -150,7 +142,7 @@ lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, an
   i <- 0
 
   # Iterate over subsets
-  # cat("Iterating over all subsets:", subset_length, " iterations at most. \n" )
+  cat("Iterating over all subsets:", subset_length, " iterations at most. \n" )
 
   while (TRUE) {
     # For printing the progress
@@ -178,7 +170,7 @@ lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, an
       # subsets[i] keeps increasing in size and subsets keep getting popped until subsets[i] can be made l-diverse given the quasi_ids and functions
       nearestSubsetIndex <- findNearestSubset(subsets[i], subsets, quasiIdentifiers)
       if(nearestSubsetIndex == 0){
-        message("All subsets combined and no l-diversity obtained.")
+        # message("All subsets combined and no l-diversity obtained.")
         break
       }
 
@@ -246,18 +238,10 @@ lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, an
 
   # Just a final check
   if (isLDiverse(lDiverseData, sensitiveAttributes, quasiIdentifiers, l)) {
-    # shuffled <- lDiverseData[sample(nrow(lDiverseData)), ]
-    # rownames(shuffled) <- 1:nrow(shuffled)
-    # print(Sys.time() - start_time)
-    # return(shuffled)
-    if(shuffle == TRUE){
-      return(shuffle(lDiverseData))
-    } else{
-      return(lDiverseData)
-    }
-  }
-
-  else{
+    print(Sys.time() - start_time)
+    if(shuffle) return(shuffle(lDiverseData))
+    else return(reorder_rownames(lDiverseData))
+  } else{
     print(Sys.time() - start_time)
     stop("l-diversity could not be obtained.")
   }
@@ -313,12 +297,6 @@ findNearestSubset <- function(subset, subsets, quasiIdentifiers) {
 #'
 #' @return A numeric value representing the diversity distance between the two subsets.
 #'
-#' @examples
-#' \dontrun{
-#' data1 <- list(data.frame(ID = 1:5, Age = c(25, 35, 40, 28, 32), Gender = c("M", "F", "F", "M", "F")))
-#' data2 <- list(data.frame(ID = 6:10, Age = c(28, 38, 42, 31, 29), Gender = c("M", "F", "F", "F", "M")))
-#' diversity_distance <- matrix_distance(data1, data2, c("Age", "Gender"))
-#' }
 #'
 matrix_distance <- function(subset, otherSubset, quasiIdentifiers) {
 

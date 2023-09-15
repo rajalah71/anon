@@ -9,14 +9,13 @@ combine_lowest_classes(column, k = 1)
 \arguments{
 \item{column}{The column in which to combine the lowest classes.}
 
-\item{k}{The maximum number of lowest classes to combine.}
+\item{k}{The maximum number of fewest occurances to combine.}
 }
 \value{
-The column with the lowest classes combined.
+The column with the categorical values combined.
 }
 \description{
-This function combines the lowest classes in a column up to a specified number (k).
-The lowest classes are determined based on the frequency of occurrence in the column.
+This function iteratively combines the fewest occuring categorical values in a column (k) times.
 }
 \examples{
 column <- c("A", "B", "A", "C", "B", "D", "A", "C", "B")

@@ -30,17 +30,14 @@ Each function should take a vector as input and return a modified vector with th
 requirement, but here to accomodate for Finnish law / customs on
 anonymous data publishing.}
 
-\item{shuffle}{(Default TRUE) A parameter which determines whether the data
-will be shuffled or not before returning. Will give warning
-uf FALSE, as no data should be released without shuffling.
-For diagnostic use, or for calculating reidentification rate.}
+\item{shuffle}{Whether to shuffle the dataset before returning. Warning if FALSE, used to calculate empirical reidentification rate.}
 }
 \value{
 A dataset that is l-diverse with respect to the specified quasi-identifier columns and sensitive attributes,
   or an error is thrown if the desired level of l-diversity cannot be achieved.
 }
 \description{
-This function takes a dataset and applies a set of diversity functions to the specified
+This function takes a dataset and applies a set of anonymity functions to the specified
 quasi-identifier columns in order to achieve l-diversity with respect to the sensitive attributes.
 It checks if the dataset is already l-diverse and returns the dataset as is in that case.
 If not, it iteratively combines subsets of the dataset and applies the anonymity functions

@@ -34,9 +34,8 @@ cell_swap = function(data){
 #'
 #' This function adds Laplace-distributed noise to each column of the input data.
 #' The Laplace noise is controlled by the privacy parameter \code{epsilon}.
-#' Higher \code{epsilon} values allow for less noise and provide lower privacy guarantees.
-#' The privacy guarantees depend on the choice of \code{epsilon}, which determines the scale
-#' of the Laplace distribution.
+#' \code{epsilon} determines the scale
+#' of the Laplace distribution. Larger \code{epsilon} means less noise.
 #'
 #' @param data A data frame or matrix containing the original data.
 #' @param epsilon The privacy parameter controlling the amount of noise added.
@@ -62,282 +61,62 @@ sensitive_noise = function(data, epsilon = 1){
 
 
 
-#---------------------------------------------
-
-#' Anonymize a data frame using spectral decomposition.
-#'
-#' This function takes a data frame as input and performs spectral decomposition
-#' to anonymize the data by altering its left singular vectors. The anonymization
-#' is done by applying a user-defined anonymizer function to vectors.
-#' The function then reconstructs the decentered, anonymized data
-#' and returns it as a new data frame.
-#'
-#' @param data A data frame to be anonymized and decentered.
-#'
-#' @param anonymizer A function used to anonymize the U matrix from singluar
-#'                    value decomposition. The function should
-#'                   take a data frame as input and return an anonymized data frame.
-#'                   For example, the anonymizer function could perform a random
-#'                   permutation of rows to achieve anonymization.
-#'
-#' @param sample Logical: Whether to sample from the numerical columns
-#'                or take the max
-#'
-#' @param cat_as_num Logical: Whether categorical variables should be returned
-#'                    as numerical or not
-#'
-#' @return A new data frame containing the anonymized data.
-#'
-#' @importFrom onehot onehot
-#'
-spectral_legacy = function(data, anonymizer, sample = FALSE, cat_as_num = FALSE){
-
-  # One-hot encode the data using the 'onehot' package
-  oh = onehot(data, stringsAsFactors = TRUE, max_levels = Inf)
-
-  # Initialize an empty vector to store the names of factor columns
-  names = c()
-
-  # Identify and store the names of factor columns
-  for(item in oh){
-    if(item$type == "factor") names = append(names, item$name)
-  }
-
-  # Perform the one-hot encoding of the data using the trained model
-  encoded = predict(oh, data)
-
-  # Convert categorical columns to {-1, 1} encoding
-  for(name in names){
-    cols = startsWith(colnames(encoded), name)
-    workingset = encoded[,cols]
-    withnegatives = t(apply(workingset, 1, function(x) ifelse(x == 0, -1, 1)))
-    encoded[,cols] = withnegatives
-  }
-
-  # Store the {-1, 1} encoded data as 'onehot'
-  onehot = encoded
-
-  # Make a new empty dataframe of the original size and column names to store the centered data
-  centered = emptydf(onehot)
-
-  # Calculate the column means for centering the data
-  means = sapply(onehot, mean)
-
-  # Center the data by subtracting the column means from each column
-  for(i in seq(ncol(onehot))){
-    centered[,i] = onehot[,i] - means[i]
-  }
-
-  # Perform Singular Value Decomposition (SVD) on the centered data, M = UDV'
-  svd = svd(centered)
-
-  # Anonymize matrix U from the SVD using the provided anonymization function
-  u_anon = anonymizer(as.data.frame(svd$u))
-
-  # Reconstruct the anonymized centered data using UDV' form
-  data_anon = as.data.frame(as.matrix(u_anon) %*% diag(svd$d) %*% t(svd$v))
-  colnames(data_anon) = colnames(data)
-
-  # Make a new empty dataframe of the original size and column names to store the decentered, anonymized data
-  decentered_anon = emptydf(onehot)
-
-  # Add the column means back to the anonymized data to decenter it
-  for(i in seq(ncol(onehot))){
-    decentered_anon[,i] = data_anon[,i] + means[i]
-  }
-
-  # Normalize the factor columns using softmax
-  for(name in names){
-    cols = startsWith(colnames(decentered_anon), name)
-    workingset = decentered_anon[,cols]
-    normalized = t(apply(workingset, 1, function(x)  (exp(x) / (1 + exp(x)))/sum(exp(x) / (1 + exp(x))) ))
-    decentered_anon[,cols] = normalized
-  }
-
-  # Return the categorical values as categorical if wanted, using sampling if TRUE
-  if(!cat_as_num){
-    return(inverse_onehot(decentered_anon, names, sample))
-  }
-
-  # Return the decentered and anonymized data
-  return(decentered_anon)
-}
 
 #---------------------------------------
 
-#' Anonymize a data frame using spectral decomposition.
+#' Anonymize a data frame using spectral anonymization.
 #'
-#' This function takes a data frame as input and performs spectral decomposition
-#' to anonymize the data by altering its left singular vectors. The anonymization
-#' is done by applying a user-defined anonymizer function to vectors.
-#' The function then reconstructs the decentered, anonymized data
-#' and returns it as a new data frame.
+#' This function takes a data frame M as input and performs singular value decomposition on it, M = UDV'.
+#' Then the user defined anonymization function is performed on some matrix (or matrices) of the decomposition.
+#' M is reconstructed using the anonymized SVD and returned. Built in functions that work with spectral are
+#' "cell_swap" and "sensitive_noise".
 #'
-#' @param data A data frame to be anonymized and decentered.
-#'
-#' @param anonymizer A function used to anonymize the U matrix from singluar
-#'                    value decomposition. The function should
-#'                   take a data frame as input and return an anonymized data frame.
-#'                   For example, the anonymizer function could perform a random
-#'                   permutation of rows to achieve anonymization.
-#'
-#' @param sample Logical: Whether to sample from the numerical columns
-#'                or take the max
-#'
-#' @param cat_as_num Logical: Whether categorical variables should be returned
-#'                    as numerical or not
-#'
-#' @param on_matrices A character string indicating which matrix to anonymize.
-#'                    Possible values are "U", "D", "V", "UD", and "DV".
-#'                    The default is "U". Note that the transposition is not
-#'                    shown here on V for ease of parametrization, but the
-#'                    modifications will be made on it's transpose.
-#'
-#' @return A new data frame containing the anonymized data.
-#'
-#' @importFrom onehot onehot
-#'
-spectral_legacy2 = function(data, anonymizer, on_matrices = "U", sample = FALSE, cat_as_num = FALSE){
-
-  # One-hot encode the data using the 'onehot' package
-  oh = onehot(data, stringsAsFactors = TRUE, max_levels = Inf)
-
-  # Initialize an empty vector to store the names of factor columns
-  names = c()
-
-  # Identify and store the names of factor columns
-  for(item in oh){
-    if(item$type == "factor") names = append(names, item$name)
-  }
-
-  # Perform the one-hot encoding of the data using the trained model
-  encoded = predict(oh, data)
-
-  # Convert categorical columns to {-1, 1} encoding
-  for(name in names){
-    cols = startsWith(colnames(encoded), name)
-    workingset = encoded[,cols]
-    withnegatives = t(apply(workingset, 1, function(x) ifelse(x == 0, -1, 1)))
-    encoded[,cols] = withnegatives
-  }
-
-  # Store the {-1, 1} encoded data as 'onehot'
-  onehot = encoded
-
-  # Make a new empty dataframe of the original size and column names to store the centered data
-  centered = emptydf(onehot)
-
-  # Calculate the column means for centering the data
-  means = sapply(onehot, mean)
-
-  # Center the data by subtracting the column means from each column
-  for(i in seq(ncol(onehot))){
-    centered[,i] = onehot[,i] - means[i]
-  }
-
-  # Perform Singular Value Decomposition (SVD) on the centered data, M = UDV'
-  svd = svd(centered)
-
-  # Anonymize the specified matrix from the SVD using the provided anonymization function
-  if(on_matrices == "U"){
-    u_anon = anonymizer(as.data.frame(svd$u))
-    udv_anon = as.matrix(u_anon) %*% diag(svd$d) %*% t(svd$v)
-  } else if(on_matrices == "D"){
-    d_anon = anonymizer(as.data.frame(diag(svd$d)))
-    udv_anon = svd$u %*% as.matrix(d_anon) %*% t(svd$v)
-  } else if(on_matrices == "V"){
-    v_anon = anonymizer(as.data.frame(svd$v))
-    udv_anon = svd$u %*% diag(svd$d) %*% as.matrix(t(v_anon))
-  } else if(on_matrices == "UD"){
-    ud_anon = anonymizer(as.data.frame(svd$u %*% diag(svd$d)))
-    udv_anon = as.matrix(ud_anon) %*% t(svd$v)
-  } else if(on_matrices == "DV"){
-    dv_anon = anonymizer(as.data.frame(diag(svd$d) %*% t(svd$v)))
-    udv_anon = svd$u %*% as.matrix(dv_anon)
-  } else {
-    stop("Invalid value for 'on_matrices' parameter.")
-  }
-
-  # Reconstruct the anonymized centered data using UDV' form
-  data_anon = as.data.frame(udv_anon)
-  colnames(data_anon) = colnames(data)
-
-  # Make a new empty dataframe of the original size and column names to store the decentered, anonymized data
-  decentered_anon = emptydf(onehot)
-
-  # Add the column means back to the anonymized data to decenter it
-  for(i in seq(ncol(onehot))){
-    decentered_anon[,i] = data_anon[,i] + means[i]
-  }
-
-  # Normalize the factor columns using normalized inverse logit
-  for(name in names){
-    cols = startsWith(colnames(decentered_anon), name)
-    workingset = decentered_anon[,cols]
-    normalized = t(apply(workingset, 1, function(x)  (exp(x) / (1 + exp(x)))/sum(exp(x) / (1 + exp(x))) ))
-    decentered_anon[,cols] = normalized
-  }
-
-  # Return the categorical values as categorical if wanted, using sampling if TRUE
-  if(!cat_as_num){
-    return(inverse_onehot(decentered_anon, names, sample))
-  }
-
-  # Return the decentered and anonymized data
-  return(decentered_anon)
-}
-
-#---------------------------------------
-
-#' Anonymize a data frame using spectral decomposition.
-#'
-#' This function takes a data frame as input and performs spectral decomposition
-#' to anonymize the data by altering its left singular vectors. The anonymization
-#' is done by applying a user-defined anonymizer function to vectors.
-#' The function then reconstructs the decentered, anonymized data
-#' and returns it as a new data frame.
 #'
 #' @param data A data frame to be anonymized and decentered.
 #'
-#' @param anonymizer A function used to anonymize the U matrix from singluar
+#' @param anonymizer A function used to anonymize part of the singluar
 #'                    value decomposition. The function should
-#'                   take a data frame as input and return an anonymized data frame.
-#'                   For example, the anonymizer function could perform a random
-#'                   permutation of rows to achieve anonymization.
+#'                   take a data frame as input and return an anonymized data frame of the same size.
 #'
-#' @param sample Logical: Whether to sample from the numerical columns
-#'                or take the max
+#' @param sample Logical: Whether to sample a value for a categorical variable represented in the probabilistic state or take the value with the most weight.
 #'
 #' @param cat_as_num Logical: Whether categorical variables should be returned
-#'                    as numerical or not
+#'                    in their probabilistic state or not.
 #'
 #' @param on_matrices A character string indicating which matrix to anonymize.
 #'                    Possible values are "U", "V", "UD", and "DV".
 #'                    The default is "U". Note that the transposition is not
 #'                    shown here on V for ease of parametrization, but the
-#'                    modifications will be made on it's transpose.
+#'                    modifications will be made on it's transpose, V'.
 #'
-#' @param approx Logical: Whether to use the truncated SVD (default) or the full SVD.
+#' @param full Logical: Whether to use the full SVD or the reduced SVD (default).
+#'
+#' @param shuffle Logical: Whether to shuffle the dataset before returning. Warning if FALSE, used to calculate empirical reidentification rate.
+#'
+#' @param preserveMeans Extract colmeans before svd or not, and add them back afte svd anoymization. Use for cell swap at least, might be usefull for other functions as well. Defaults TRUE.
 #'
 #' @return A new data frame containing the anonymized data.
 #'
 #' @importFrom onehot onehot
 #'
 #' @export
-spectral = function(data, anonymizer, on_matrices = "U", approx = TRUE, sample = FALSE, cat_as_num = FALSE){
+spectral = function(data, anonymizer, on_matrices = "U", preserveMeans = TRUE,  full = FALSE, sample = FALSE, cat_as_num = FALSE, shuffle = TRUE){
 
-  # One-hot encode the data using the 'onehot' package
+  if(!shuffle) warning("Shuffle is FALSE. Do not release data.\n")
+
+  # Store the original ordering of the columns for later use (reordeding)
+  colnames = colnames(data)
+
+  # Make a one-hot object of the data using the 'onehot' package
   oh = onehot(data, stringsAsFactors = TRUE, max_levels = Inf)
 
-  # Initialize an empty vector to store the names of factor columns
+  # Identify and store the names of factor columns for later use (recombining)
   names = c()
-
-  # Identify and store the names of factor columns
   for(item in oh){
     if(item$type == "factor") names = append(names, item$name)
   }
 
-  # Perform the one-hot encoding of the data using the trained model
+  # Perform the one-hot encoding of the data using the previous one-hot object
   encoded = predict(oh, data)
 
   # Convert categorical columns to {-1, 1} encoding
@@ -348,25 +127,18 @@ spectral = function(data, anonymizer, on_matrices = "U", approx = TRUE, sample =
     encoded[,cols] = withnegatives
   }
 
-  # Store the {-1, 1} encoded data as 'onehot'
-  onehot = encoded
-
-  # Make a new empty dataframe of the original size and column names to store the centered data
-  centered = emptydf(onehot)
-
   # Calculate the column means for centering the data
-  means = sapply(onehot, mean)
+  if(preserveMeans) means = colMeans(encoded)
+  else means = rep(0, ncol(encoded))
 
   # Center the data by subtracting the column means from each column
-  for(i in seq(ncol(onehot))){
-    centered[,i] = onehot[,i] - means[i]
-  }
+  if(preserveMeans) encoded = scale(encoded, center = TRUE, scale = FALSE)
 
   # Perform Singular Value Decomposition (SVD) on the centered data, M = UDV'
-  if(approx){
-    svd = svd(centered)
+  if(!full){
+    svd = svd(encoded)
   } else {
-    svd = svd(centered, nu = nrow(centered), nv = ncol(centered))
+    svd = svd(encoded, nu = nrow(encoded), nv = ncol(encoded))
   }
 
   # Create a diagonal matrix from the singular values vector
@@ -389,33 +161,36 @@ spectral = function(data, anonymizer, on_matrices = "U", approx = TRUE, sample =
     stop("Invalid value for 'on_matrices' parameter.")
   }
 
-  # Reconstruct the anonymized centered data using UDV' form
+  # Reconstruct the anonymized data using UDV' form and adding the col means back in
   data_anon = as.data.frame(udv_anon)
-  colnames(data_anon) = colnames(data)
-
-  # Make a new empty dataframe of the original size and column names to store the decentered, anonymized data
-  decentered_anon = emptydf(onehot)
-
-  # Add the column means back to the anonymized data to decenter it
-  for(i in seq(ncol(onehot))){
-    decentered_anon[,i] = data_anon[,i] + means[i]
+  colnames(data_anon) = colnames(encoded)
+  for(i in seq(ncol(data_anon))){
+    data_anon[,i] = data_anon[,i] + means[i]
   }
 
   # Normalize the factor columns using normalized inverse logit
   for(name in names){
-    cols = startsWith(colnames(decentered_anon), name)
-    workingset = decentered_anon[,cols]
+    cols = startsWith(colnames(data_anon), name)
+    workingset = data_anon[,cols]
     normalized = t(apply(workingset, 1, function(x)  (exp(x) / (1 + exp(x)))/sum(exp(x) / (1 + exp(x))) ))
-    decentered_anon[,cols] = normalized
+    data_anon[,cols] = normalized
   }
 
-  # Return the categorical values as categorical if wanted, using sampling if TRUE
+  # Return the categorical values as numerical weights if cat_as_num = TRUE, or as categoricals if FALSE.
+  # Use sampling on picking the categories if sampling = TRUE
   if(!cat_as_num){
-    return(inverse_onehot(decentered_anon, names, sample))
+    inverse = inverse_onehot(data_anon, names, sample)
+    colnames_now = colnames(inverse)
+    # reorder the columns to match the original data
+    inverse = inverse[,match(colnames, colnames_now)]
+    # Check whether an exact
+    if(shuffle) inverse = shuffle(inverse)
+    return(inverse)
   }
 
   # Return the decentered and anonymized data
-  return(decentered_anon)
+  if(shuffle) data_anon = shuffle(data_anon)
+  return(data_anon)
 }
 
 

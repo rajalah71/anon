@@ -2,7 +2,7 @@
 % Please edit documentation in R/utility.r
 \name{shuffle}
 \alias{shuffle}
-\title{Shuffle the values in each column of a data frame.}
+\title{Shuffle the rows of a data frame.}
 \usage{
 shuffle(data)
 }
@@ -11,13 +11,13 @@ shuffle(data)
 }
 \value{
 A new data frame with the same dimensions as data, but with the
-        values in each column randomly shuffled.
+        rows shuffled.
 }
 \description{
 This function takes a data frame as input and returns a new data frame with
-the same dimensions as the original data. The values in each column of the
+the same dimensions as the original data. The rows of the
 returned data frame are shuffled randomly using the \code{sample} function,
-effectively creating a random permutation of each column.
+effectively re-ordering the dataframe, as in shuffling a deck of cards.
 }
 \examples{
 data <- data.frame(x = c(1, 2, 3), y = c(4, 5, 6))

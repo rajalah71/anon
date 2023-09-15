@@ -21,10 +21,7 @@ kAnon(
 
 \item{anonymizationFunctions}{A named list of anonymization functions for each quasi-identifier column (default: NULL).}
 
-\item{shuffle}{(Default TRUE) A parameter which determines whether the data
-will be shuffled or not before returning. Will give warning
-uf FALSE, as no data should be released without shuffling.
-For diagnostic use, or for calculating reidentification rate.}
+\item{shuffle}{Whether to shuffle the dataset before returning. Warning if FALSE, used to calculate empirical reidentification rate.}
 }
 \value{
 A k-anonymous data frame.
