@@ -239,7 +239,7 @@ lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, an
     else return(reorder_rownames(lDiverseData))
   } else{
     print(Sys.time() - start_time)
-    stop("l-diversity could not be obtained.")
+    stop("l-diversity could not be obtained, some sensitive attribute has too many unique values. Try to use 'sensitive_generalizer' on them to modify them beforehand.")
   }
 }
 

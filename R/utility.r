@@ -368,33 +368,112 @@ reorder_rownames <- function(df) {
 
 #-----------------------------------------------------
 
-sensitive_generalizer = function(sensitiveColumn, subsetSize = 2){
+#' Get Mode
+#'
+#' Find the mode (most frequent value) in a vector.
+#'
+#' @param x The input vector.
+#' @return The mode of the input vector.
+#'
+#' @examples
+#' data <- c(1, 2, 2, 3, 3, 3, 4, 4, 4, 4)
+#' get_mode(data)
+#'
+#' @export
+get_mode <- function(x) {
+  uniq_x <- unique(x)
+  uniq_x[which.max(tabulate(match(x, uniq_x)))]
+}
+
+#-----------------------------------------------------
+
+#' Sensitive Column Generalizer
+#'
+#' Divide a sensitive column into subsets of a specified size and generalize each subset.
+#'
+#' @param sensitiveColumn The input sensitive column.
+#' @param subsetSize The size of subsets to create (default: 2).
+#' @return A generalized version of the sensitive column with subsets replaced by their means (for numeric columns) or modes (for non-numeric columns).
+#'
+#' @examples
+#' numeric_data <- c(1, 2, 3, 4, 5, 6)
+#' sensitive_generalizer(numeric_data, subsetSize = 2)
+#'
+#' categorical_data <- c("A", "B", "B", "C", "C", "D")
+#' sensitive_generalizer(categorical_data, subsetSize = 2)
+#'
+#'
+#' @export
+sensitive_generalizer = function(sensitiveColumn, subsetSize = NULL, subsets = NULL){
+
+  # only one parameter is allowed as non null
+  if(!is.null(subsetSize) && !is.null(subsets)) stop("Choose either individual subsetSize or the number of subsets.")
+
   # Divide the column into subsets to sizes of "subsetSize"
 
-  # If numerical, sort, store the original order, divide into subsets of size "subsetSize" and then replace every value in every subset with its mean
-  if(is.numeric(sensitiveColumn)){
-    sorted = sort(sensitiveColumn)
-    originalOrder = order(sensitiveColumn)
-    sorted = sorted[seq(1, length(sorted), subsetSize)]
-    for(i in 1:length(sorted)){
-      sorted[i] = mean(sorted[i:(i+subsetSize-1)])
+  if(!is.null(subsetSize)){
+      # If numerical, store the original order, sort, divide into subsets of size "subsetSize" and then replace every value in every subset with its mean
+    if(is.numeric(sensitiveColumn)){
+      originalOrder = order(sensitiveColumn)
+      sortedColumn = sort(sensitiveColumn)
+      subsets = split(sortedColumn, ceiling(seq_along(sortedColumn)/subsetSize))
+      for(i in 1:length(subsets)){
+        subset_mean = mean(subsets[[i]])
+        subsets[[i]] = rep(subset_mean, length(subsets[[i]]))
+      }
+      sortedColumn = unlist(subsets)
+      sortedColumn = sortedColumn[order(originalOrder)]
+      return(sortedColumn)
     }
-    sorted = sorted[seq(1, length(sorted), subsetSize)]
-    sorted = sorted[order(originalOrder)]
-    return(sorted)
+
+    # If not numerical, store the original order, sort, divide into subsets of size "subsetSize" and then replace every value in every subset with its mode (function called "get_mode")
+    else{
+      originalOrder = order(sensitiveColumn)
+      sortedColumn = sort(sensitiveColumn)
+      subsets = split(sortedColumn, ceiling(seq_along(sortedColumn)/subsetSize))
+      for(i in 1:length(subsets)){
+        subset_mode = get_mode(subsets[[i]])
+        subsets[[i]] = rep(subset_mode, length(subsets[[i]]))
+      }
+      sortedColumn = unlist(subsets)
+      sortedColumn = sortedColumn[order(originalOrder)]
+      return(sortedColumn)
+    }
   }
 
-  # If categorical, sort by occurance, store the original order, combine subsets such that every subset has at least "subsetSize"
-  if(!is.numeric(sensitiveColumn)){
-    sorted = sort(sensitiveColumn)
-    originalOrder = order(sensitiveColumn)
-    sorted = sorted[seq(1, length(sorted), subsetSize)]
-    for(i in 1:length(sorted)){
-      sorted[i] = mean(sorted[i:(i+subsetSize-1)])
+  if(!is.null(subsets)){
+
+    # Calculate subsetsize
+    subsetSize = ceiling(length(sensitiveColumn) / subsets)
+
+    # If numerical, store the original order, sort, divide into subsets of size "subsetSize" and then replace every value in every subset with its mean
+    if(is.numeric(sensitiveColumn)){
+      originalOrder = order(sensitiveColumn)
+      sortedColumn = sort(sensitiveColumn)
+      subsets = split(sortedColumn, ceiling(seq_along(sortedColumn)/subsetSize))
+      for(i in 1:length(subsets)){
+        subset_mean = mean(subsets[[i]])
+        subsets[[i]] = rep(subset_mean, length(subsets[[i]]))
+      }
+      sortedColumn = unlist(subsets)
+      sortedColumn = sortedColumn[order(originalOrder)]
+      return(sortedColumn)
     }
-    sorted = sorted[seq(1, length(sorted), subsetSize)]
-    sorted = sorted[order(originalOrder)]
-    return(sorted)
+
+    # If not numerical, store the original order, sort, divide into subsets of size "subsetSize" and then replace every value in every subset with its mode (function called "get_mode")
+    else{
+      originalOrder = order(sensitiveColumn)
+      sortedColumn = sort(sensitiveColumn)
+      subsets = split(sortedColumn, ceiling(seq_along(sortedColumn)/subsetSize))
+      for(i in 1:length(subsets)){
+        subset_mode = get_mode(subsets[[i]])
+        subsets[[i]] = rep(subset_mode, length(subsets[[i]]))
+      }
+      sortedColumn = unlist(subsets)
+      sortedColumn = sortedColumn[order(originalOrder)]
+      return(sortedColumn)
+    }
+
   }
 
 }
