@@ -100,9 +100,9 @@ sensitive_noise = function(data, epsilon = 1){
 #' @importFrom onehot onehot
 #'
 #' @export
-spectral = function(data, anonymizer, on_matrices = "U", preserveMeans = TRUE,  full = FALSE, sample = FALSE, cat_as_num = FALSE, shuffle = TRUE){
+spectral = function(data, anonymizer, on_matrices = "U", preserveMeans = TRUE,  full = FALSE, sample = FALSE, cat_as_num = FALSE, shuffle = FALSE){
 
-  if(!shuffle) warning("Shuffle is FALSE. Do not release data.\n")
+  if(!shuffle) warning("Shuffle is FALSE. Use 'anon::shuffle()' before publishing data.\n")
 
   # Store the original ordering of the columns for later use (reordeding)
   colnames = colnames(data)

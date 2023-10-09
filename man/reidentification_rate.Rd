@@ -4,12 +4,19 @@
 \alias{reidentification_rate}
 \title{Calculate the reidentification rate of a dataset after anonymization}
 \usage{
-reidentification_rate(original_data, reference_data, dist = euc_dist)
+reidentification_rate(
+  original_data,
+  reference_data,
+  quasiIdentifiers,
+  dist = euc_dist
+)
 }
 \arguments{
 \item{original_data}{A data frame containing the original dataset}
 
 \item{reference_data}{A data frame containing the reference dataset}
+
+\item{quasiIdentifiers}{The quasi-identifiers of the data given as a vector of names.}
 
 \item{dist}{An optional distance function to use for calculating distances between rows of the datasets. Defaults to the Euclidean distance function.}
 }

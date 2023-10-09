@@ -52,9 +52,9 @@ encrypt_message = function(m, e, n, bits) {
 #' encrypted_data <- encrypt(data, bits = 2048)
 #'
 #' @export
-encrypt <- function(data, my_key = FALSE, bits = 2048, shuffle = TRUE) {
+encrypt <- function(data, my_key = FALSE, bits = 2048, shuffle = FALSE) {
 
-  if(!shuffle) warning("Shuffle is FALSE. Do not release data.")
+  if(!shuffle) warning("Shuffle is FALSE. Use 'anon::shuffle()' before publishing data.\n")
 
   # Use existing key or generate a new RSA key
   if(my_key){

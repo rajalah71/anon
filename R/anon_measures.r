@@ -359,6 +359,7 @@ prediction_plot = function(original_data, k, reference_data, dist = euc_dist){
 #'
 #' @param original_data A data frame containing the original dataset
 #' @param reference_data A data frame containing the reference dataset
+#' @param quasiIdentifiers The quasi-identifiers of the data given as a vector of names.
 #' @importFrom onehot onehot
 #' @param dist An optional distance function to use for calculating distances between rows of the datasets. Defaults to the Euclidean distance function.
 #' @return A numeric value representing the proportion of correct guesses
@@ -367,14 +368,22 @@ prediction_plot = function(original_data, k, reference_data, dist = euc_dist){
 #' original_data <- data.frame(x = c(1, 2, 3), y = c(4, 5, 6))
 #' reference_data <- data.frame(x = c(2, 3, 4), y = c(5, 6, 7))
 #' reidentification_rate(original_data, reference_data)
-reidentification_rate = function(original_data, reference_data, dist = euc_dist){
+reidentification_rate = function(original_data, reference_data, quasiIdentifiers,  dist = euc_dist){
+
+  # Drop rows not in quasiIdentifier
+  original_data = original_data[, quasiIdentifiers]
+  reference_data = reference_data[, quasiIdentifiers]
+
   # Calculate distances for every row of the original data against the reference data
   distances = distances(original_data, reference_data, dist)
 
   # Calculate the reidentification rate, i.e. the proportion of correct guesses, when taking the smallest distance as the best match
   reidentification_rate = sum(apply(distances, 1, which.min) == seq(nrow(original_data)))/nrow(original_data)
 
-  cat("Reidentification rate of anonymous data:",  reidentification_rate, ", versus pure guessing (approximately):", 1/nrow(original_data), ", ratio of:",reidentification_rate*nrow(original_data) ,"\n")
+  cat("Reidentification rate of anonymous data:",  reidentification_rate, ", versus pure guessing (approximately):", 1/nrow(original_data))
+
+  # , ", ratio of:",reidentification_rate*nrow(original_data) ,"\n"
+
   return(reidentification_rate)
 
 

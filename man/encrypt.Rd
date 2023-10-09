@@ -4,7 +4,7 @@
 \alias{encrypt}
 \title{Encrypts the data using RSA encryption and scales the encrypted values to [0, 1].}
 \usage{
-encrypt(data, my_key = FALSE, bits = 2048, shuffle = TRUE)
+encrypt(data, my_key = FALSE, bits = 2048, shuffle = FALSE)
 }
 \arguments{
 \item{data}{The data frame to be encrypted and scaled.}

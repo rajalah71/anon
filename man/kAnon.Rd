@@ -9,7 +9,7 @@ kAnon(
   k,
   quasiIdentifiers = NULL,
   anonymizationFunctions = NULL,
-  shuffle = TRUE
+  shuffle = FALSE
 )
 }
 \arguments{

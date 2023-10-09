@@ -76,13 +76,13 @@ isLDiverse <- function(data, sensitiveAttributes, quasiIdentifiers, l) {
 #' lDiversity(iris, "Species", l = 2)
 #'}
 #' @export
-lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymizationFunctions = NULL, k=5, shuffle = TRUE) {
+lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymizationFunctions = NULL, k=5, shuffle = FALSE) {
 
   # For runtime
   start_time <- Sys.time()
 
   # if shuffle FALSE, warning
-  if(!shuffle) warning("Shuffle is FALSE. Do not release data.\n")
+  if(!shuffle) warning("Shuffle is FALSE. Use 'anon::shuffle()' before publishing data.\n")
 
   # If quasiIdentifiers are not provided, calculate the cardinality of each column
   # and identify numeric and categorical columns for default behavior.

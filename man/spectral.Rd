@@ -12,7 +12,7 @@ spectral(
   full = FALSE,
   sample = FALSE,
   cat_as_num = FALSE,
-  shuffle = TRUE
+  shuffle = FALSE
 )
 }
 \arguments{

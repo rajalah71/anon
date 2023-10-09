@@ -58,13 +58,13 @@ is_k_anonymous = function(data, quasi_id_cols, k) {
 #' kAnonData <- kAnon(iris, quasiIdentifiers = c("Species", "Petal.Width"), anonymizationFunctions, k = 3)
 #'}
 #' @export
-kAnon <- function(data, k, quasiIdentifiers = NULL, anonymizationFunctions = NULL, shuffle = TRUE) {
+kAnon <- function(data, k, quasiIdentifiers = NULL, anonymizationFunctions = NULL, shuffle = FALSE) {
 
   # For runtime
   start_time <- Sys.time()
 
   # if shuffle FALSE, warning
-  if(!shuffle) warning("Shuffle is FALSE. Do not release data.\n")
+  if(!shuffle) warning("Shuffle is FALSE. Use 'anon::shuffle()' before publishing data.\n")
 
   # If quasiIdentifiers or anonymizationFunctions are not provided, calculate the cardinality of each column
   # and identify numeric and categorical columns

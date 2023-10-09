@@ -9,13 +9,15 @@ sensitive_generalizer(sensitiveColumn, subsetSize = NULL, subsets = NULL)
 \arguments{
 \item{sensitiveColumn}{The input sensitive column.}
 
-\item{subsetSize}{The size of subsets to create (default: 2).}
+\item{subsetSize}{The size of subsets to create.}
+
+\item{subsets}{The number of subsets to create.}
 }
 \value{
 A generalized version of the sensitive column with subsets replaced by their means (for numeric columns) or modes (for non-numeric columns).
 }
 \description{
-Divide a sensitive column into subsets of a specified size and generalize each subset.
+Divide a sensitive column into subsets of a specified size or into a number of subsets and generalize each subset.
 }
 \examples{
 numeric_data <- c(1, 2, 3, 4, 5, 6)

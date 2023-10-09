@@ -11,7 +11,7 @@ lDiversity(
   quasiIdentifiers = NULL,
   anonymizationFunctions = NULL,
   k = 5,
-  shuffle = TRUE
+  shuffle = FALSE
 )
 }
 \arguments{
