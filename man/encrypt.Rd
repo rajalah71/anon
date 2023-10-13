@@ -4,7 +4,7 @@
 \alias{encrypt}
 \title{Encrypts the data using RSA encryption and scales the encrypted values to [0, 1].}
 \usage{
-encrypt(data, my_key = FALSE, bits = 2048, shuffle = FALSE)
+encrypt(data, my_key = FALSE, bits = 2048, charAsNum = FALSE, shuffle = FALSE)
 }
 \arguments{
 \item{data}{The data frame to be encrypted and scaled.}
@@ -12,6 +12,8 @@ encrypt(data, my_key = FALSE, bits = 2048, shuffle = FALSE)
 \item{my_key}{Logical parameter: whether your own key from .ssh folder should be used or not}
 
 \item{bits}{The number of bits used for precision in the RSA encryption.}
+
+\item{charAsNum}{Logical parameter: Whether to keep character columns as character or not.}
 
 \item{shuffle}{Logical parameter: whether the resulting data will be shuffled before returning. Warning if FALSE.}
 }

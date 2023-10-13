@@ -40,6 +40,7 @@ encrypt_message = function(m, e, n, bits) {
 #' @param data The data frame to be encrypted and scaled.
 #' @param bits The number of bits used for precision in the RSA encryption.
 #' @param my_key Logical parameter: whether your own key from .ssh folder should be used or not
+#' @param charAsNum Logical parameter: Whether to keep character columns as character or not.
 #' @param shuffle Logical parameter: whether the resulting data will be shuffled before returning. Warning if FALSE.
 #'
 #' @return A scaled data frame where each column contains the encrypted and scaled values.
@@ -52,9 +53,12 @@ encrypt_message = function(m, e, n, bits) {
 #' encrypted_data <- encrypt(data, bits = 2048)
 #'
 #' @export
-encrypt <- function(data, my_key = FALSE, bits = 2048, shuffle = FALSE) {
+encrypt <- function(data, my_key = FALSE, bits = 2048, charAsNum = FALSE, shuffle = FALSE) {
 
   if(!shuffle) warning("Shuffle is FALSE. Use 'anon::shuffle()' before publishing data.\n")
+
+  # Get non-numeric column ids
+  non_numeric_cols = which(sapply(data, function(x) !is.numeric(x)))
 
   # Use existing key or generate a new RSA key
   if(my_key){
@@ -109,6 +113,9 @@ encrypt <- function(data, my_key = FALSE, bits = 2048, shuffle = FALSE) {
   geometric_mean_result <- prod(uniques_double / uniques_enc)^(1/length(uniques_double / uniques_enc))
 
   cat("Information loss on conversion to double:",1-geometric_mean_result,"\n")
+
+  # Turn the non-numeric columns back to character
+  if(!charAsNum) scaled[, non_numeric_cols] = sapply(scaled[, non_numeric_cols], as.character)
 
   # Return the encrypted and scaled data
   if(shuffle) scaled = shuffle(scaled)
