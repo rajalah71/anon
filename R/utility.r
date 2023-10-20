@@ -585,7 +585,7 @@ testRsquared = function(model_list, testData, responseVar){
 
 #' Median Difference in Column Means
 #'
-#' Calculate the median difference in column means between data frames in a list, scaled to a reference data frame.
+#' Calculate the median difference in column means between data frames in a list, scaled by a reference data frame.
 #'
 #' @param dataframelist A list of data frames to compare.
 #'
@@ -598,7 +598,7 @@ medianDiffsinMean = function(dataframelist){
   # Get names of the dataframes
   names = names(dataframelist)
 
-  # First item in list is reference dataframe. Calculate colmeans and vars for each column.
+  # The first item in the list is the reference dataframe. Calculate colmeans and vars for each column.
   ref_df = dataframelist[[1]]
   ref_means = colMeans(ref_df)
   ref_sds = sapply(ref_df, sd)
@@ -610,7 +610,7 @@ medianDiffsinMean = function(dataframelist){
   other_means = lapply(scaled_dataframelist, colMeans)
 
   # Calculate the Median Absolute Deviation for colmeans for each dataset
-  df_mads = lapply(other_means, function(df) mad(df))
+  df_mads = lapply(other_means, function(df) mad(df, constant = 1, center = rep(0, length(ref_means))))
 
   # Calculate the median difference in colmeans for each dataframe in the list
   med_diffs = sapply(other_means, function(om) median(abs(om)))
@@ -623,7 +623,7 @@ medianDiffsinMean = function(dataframelist){
 
 #' Median Difference in Column Variances
 #'
-#' Calculate the median difference in column variances between data frames in a list, scaled to a reference data frame.
+#' Calculate the median difference in column variances between data frames in a list, scaled by a reference data frame.
 #'
 #' @param dataframelist A list of data frames to compare.
 #'
@@ -643,7 +643,7 @@ medianDiffsinVar = function(dataframelist){
   # Get names of the dataframes
   names = names(dataframelist)
 
-  # First item in list is reference dataframe. Calculate colmeans and vars for each column.
+  # The first item in the list is the reference dataframe. Calculate colmeans and vars for each column.
   ref_df = dataframelist[[1]]
   ref_means = colMeans(ref_df)
   ref_sds = sapply(ref_df, sd)
@@ -654,8 +654,8 @@ medianDiffsinVar = function(dataframelist){
   # calculate column vars for each other dataframe of the list.
   other_vars = lapply(scaled_dataframelist, colVars)
 
-  # Calculate the Median Absolute Deviation for colmeans for each dataset
-  df_mads = lapply(other_vars, function(df) mad(df))
+  # Calculate the Median Absolute Deviation for colvars for each dataset
+  df_mads = lapply(other_vars, function(df) mad(df, constant = 1, center = rep(1, length(ref_means))))
 
   # Calculate the median difference in colvars for each dataframe in the list
   med_diffs = sapply(other_vars, function(ov) median(abs(ov-1)))
@@ -667,7 +667,7 @@ medianDiffsinVar = function(dataframelist){
 
 #' Median Difference in Correlation Matrices
 #'
-#' Calculate the median difference in correlation matrices between data frames in a list, scaled to a reference data frame.
+#' Calculate the median difference in correlation matrices between data frames in a list, scaled by a reference data frame.
 #'
 #' @param dataframelist A list of data frames to compare.
 #'
@@ -681,7 +681,7 @@ medianDiffsinCor = function(dataframelist){
   # Get names of the dataframes
   names = names(dataframelist)
 
-  # First item in list is reference dataframe. Calculate colmeans and vars for each column.
+  # The first item in the list is the reference dataframe. Calculate colmeans and vars for each column. Only keep the upper triangle.
   ref_df = dataframelist[[1]]
   ref_means = colMeans(ref_df)
   ref_sds = sapply(ref_df, sd)
@@ -692,12 +692,12 @@ medianDiffsinCor = function(dataframelist){
   # Scale the other dataframes with the reference means and sds
   scaled_dataframelist = lapply(dataframelist[-1], function(df) scale(df, ref_means, ref_sds))
 
-  # calculate correlation matrix for each other dataframe of the list.
+  # calculate correlation matrix for each other dataframe of the list. Only keep the upper triangle.
   other_cor = lapply(scaled_dataframelist, cor)
   other_cor = lapply(other_cor, function(x) {x[lower.tri(x)] <- NA; diag(x) <- NA; x})
 
   # Calculate the Median Absolute Deviation for colmeans for each dataset
-  df_mads = lapply(other_cor, function(df) mad(df, na.rm = TRUE))
+  df_mads = lapply(other_cor, function(df) mad(df-ref_cor, constant = 1, na.rm = TRUE))
 
   # Calculate the median difference in correlation matrix for each dataframe in the list
   med_diffs = sapply(other_cor, function(oc) median(abs(oc - ref_cor), na.rm = TRUE))

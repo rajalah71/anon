@@ -13,5 +13,5 @@ medianDiffsinMean(dataframelist)
 A list containing two elements: "Medians" (median differences in column means) and "MADs" (median absolute deviations of column means).
 }
 \description{
-Calculate the median difference in column means between data frames in a list, scaled to a reference data frame.
+Calculate the median difference in column means between data frames in a list, scaled by a reference data frame.
 }

@@ -13,5 +13,5 @@ medianDiffsinCor(dataframelist)
 A list containing two elements: "Medians" (median differences in correlation matrices) and "MADs" (median absolute deviations of correlation matrices).
 }
 \description{
-Calculate the median difference in correlation matrices between data frames in a list, scaled to a reference data frame.
+Calculate the median difference in correlation matrices between data frames in a list, scaled by a reference data frame.
 }
