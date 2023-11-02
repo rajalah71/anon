@@ -29,46 +29,48 @@ euc_dist = function(x,y){
 #' Calculate the distances between rows of two datasets.
 #'
 #' This function calculates the distances between each row of the
-#' \code{original_data} and every row of the \code{reference_data} using a specified
+#' \code{original_data} and every row of the \code{anon_data} using a specified
 #' distance function (\code{dist}). The datasets are first one-hot encoded to enable
 #' distance calculations. The function then scales the datasets to have mean 0 and
-#' standard deviation 1. If reference_data is NULL, calculate the distance between each row
+#' standard deviation 1. If anon_data is NULL, calculate the distance between each row
 #' of the \code{original_data} against the rest of the \code{original_data}. Otherwise
 #' the function calculates the distance between
-#' each row of the \code{original_data} against every row of the \code{reference_data}.
+#' each row of the \code{original_data} against every row of the \code{anon_data}.
 #'
 #' @param original_data A data frame representing the original dataset.
 #'
-#' @param reference_data A data frame representing the reference dataset.
+#' @param anon_data A data frame representing the reference dataset.
 #'
 #' @param dist A function that calculates the distance between two rows of a data frame.
 #'
 #'
 #' @return A numeric vector containing the minimum distances between rows of the
-#'         \code{original_data} and \code{reference_data}.
+#'         \code{original_data} and \code{anon_data}.
 #'
 #' @importFrom onehot onehot
-#' @export
-distances = function(original_data, reference_data = NULL, dist = euc_dist){
+#'
+distances = function(original_data, anon_data = NULL, dist = euc_dist){
   # onehot encode the datasets to enable distance calculations
   original_data = predict(onehot(original_data, stringsAsFactors = TRUE, max_levels = Inf), original_data)
-  if(!is.null(reference_data)) reference_data = predict(onehot(reference_data, stringsAsFactors = TRUE, max_levels = Inf), reference_data)
+  if(!is.null(anon_data)) anon_data = predict(onehot(anon_data, stringsAsFactors = TRUE, max_levels = Inf), anon_data)
 
-  # check if the dataframes have the same number columns and stop if not (only if reference_data != NULL)
-  if(!is.null(reference_data)){
-    if(ncol(original_data) != ncol(reference_data)){
+  # check if the dataframes have the same number columns and stop if not (only if anon_data != NULL)
+  if(!is.null(anon_data)){
+    if(ncol(original_data) != ncol(anon_data)){
       stop("The dataframes do not have the same number of columns.")
     }
   }
 
-  # scale the datasets to have mean 0 and standard deviation 1
+  # scale the datasets with the original datasets colmeans and -variances
+  og_colmeans = colMeans(original_data)
+  og_colvars = colVars(original_data)
   original_data = scale(original_data)
-  if(!is.null(reference_data)) reference_data = scale(reference_data)
+  if(!is.null(anon_data)) anon_data = scale(anon_data, og_colmeans, og_colvars)
 
   # calculate the distance between each row of the original data against every row of the reference data and return the sorted for each row
-  # if reference_data is null, the distance is calculated by leaving one row out of the original data and calculating the distance between the left out row and the rest of the original data
+  # if anon_data is null, the distance is calculated by leaving one row out of the original data and calculating the distance between the left out row and the rest of the original data
 
-  if(is.null(reference_data)){
+  if(is.null(anon_data)){
     sorted_distances = as.data.frame(matrix(NA, nrow(original_data), nrow(original_data)-1))
     for(i in seq(nrow(original_data))){
       distances = c()
@@ -80,11 +82,11 @@ distances = function(original_data, reference_data = NULL, dist = euc_dist){
       sorted_distances[i,] = (distances)
     }
   } else {
-    sorted_distances = as.data.frame(matrix(NA, nrow(original_data), nrow(reference_data)))
+    sorted_distances = as.data.frame(matrix(NA, nrow(original_data), nrow(anon_data)))
     for(i in seq(nrow(original_data))){
       distances = rep_len(NA, nrow(original_data))
-      for(j in seq(nrow(reference_data))){
-        distances[j] = dist(original_data[i,], reference_data[j,])
+      for(j in seq(nrow(anon_data))){
+        distances[j] = dist(original_data[i,], anon_data[j,])
       }
       sorted_distances[i,] = (distances)
     }
@@ -96,16 +98,17 @@ distances = function(original_data, reference_data = NULL, dist = euc_dist){
 
 #' Prediction Distance
 #'
-#' Calculate distances between each row of the original_data and the reference_data using the specified distance function.
+#' Calculate distances between each row of the original_data and the anon_data using the specified distance function.
 #'
 #' @param original_data The original dataset.
-#' @param reference_data The reference dataset (default: NULL).
+#' @param anon_data The reference dataset (default: NULL).
 #' @param dist Distance function to use (default: euc_dist).
-#' @return A numeric vector containing the distances between each row of the original_data and the reference_data.
-#' @export
-prediction_distance = function(original_data, reference_data = NULL, dist = euc_dist){
+#' @param distances precalculated distances (optional)
+#' @return A numeric vector containing the distances between each row of the original_data and the anon_data.
+#'
+prediction_distance = function(original_data, anon_data = NULL, dist = euc_dist, distances = NULL){
   # calculate distances
-  distances = distances(original_data, reference_data, dist)
+  if(is.null(distances)) distances = distances(original_data, anon_data, dist)
 
   # sort each row in ascending order
   distances = t(apply(distances, 1, sort))
@@ -124,19 +127,16 @@ prediction_distance = function(original_data, reference_data = NULL, dist = euc_
 #'
 #' @param original_data The original dataset for which prediction ambiguity needs to be calculated.
 #' @param k The number of nearest neighbors to consider for calculating the ambiguity.
-#' @param reference_data (Optional) The reference dataset used for calculating the distances. If not provided, the distances will be computed within the original_data.
+#' @param anon_data (Optional) The reference dataset used for calculating the distances. If not provided, the distances will be computed within the original_data.
 #' @param dist The distance function to be used. Default is euclidean distance (euc_dist).
+#' @param distances precalculated distances (optional)
 #'
 #' @return A numeric vector representing the prediction ambiguity for each record in the original_data.
 #'
-#' @examples
-#' prediction_ambiguity(original_data = iris, k = 3)
 #'
-#'
-#' @export
-prediction_ambiguity = function(original_data, k, reference_data = NULL, dist = euc_dist){
+prediction_ambiguity = function(original_data, k, anon_data = NULL, dist = euc_dist, distances = NULL){
   # Prediction ambiguity gives the relative distance from the record Aj to the nearest versus the kth-nearest record in the set distances
-  distances = distances(original_data, reference_data, dist)
+  if(is.null(distances)) distances = distances(original_data, anon_data, dist)
 
   # sort each row in ascending order
   distances = t(apply(distances, 1, sort))
@@ -159,35 +159,34 @@ prediction_ambiguity = function(original_data, k, reference_data = NULL, dist = 
 #' enable distance calculations.
 #'
 #' @param original_data The original dataset.
-#' @param reference_data The reference dataset of the same column space (default: NULL).
+#' @param anon_data The reference dataset of the same column space (default: NULL).
 #' @param k Number of best matches to find.
 #' @param dist Distance function to use (default: euc_dist).
+#' @param distances precalculated distances (optional)
 #' @return A numeric vector containing the variances for each row of the original_data.
 #'
-#' @examples
-#' prediction_uncertainty(original_data = iris, k = 3)
 #'
 #' @importFrom onehot onehot
 #' @importFrom stats var
-#' @export
-prediction_uncertainty = function(original_data, k, reference_data = NULL, dist = euc_dist){
+#'
+prediction_uncertainty = function(original_data, k, anon_data = NULL, dist = euc_dist, distances = NULL){
   # Prediction uncertainty gives the variation among the k best matches for each row of the original data in the reference data
   # for each row of the original data, find the k best matches in the reference data using the dist function
 
   # calculate distances between each row of the original data and the reference data using the specified distance function
-  distances = distances(original_data, reference_data, dist)
+  if(is.null(distances)) distances = distances(original_data, anon_data, dist)
 
   # onehot encode and scale both datasets
   original_data = predict(onehot(original_data, stringsAsFactors = TRUE, max_levels = Inf), original_data)
-  if(!is.null(reference_data)) reference_data = predict(onehot(reference_data, stringsAsFactors = TRUE, max_levels = Inf), reference_data)
+  if(!is.null(anon_data)) anon_data = predict(onehot(anon_data, stringsAsFactors = TRUE, max_levels = Inf), anon_data)
   original_data = scale(original_data)
-  if(!is.null(reference_data)) reference_data = scale(reference_data)
+  if(!is.null(anon_data)) anon_data = scale(anon_data)
 
   # Empty vector to store variances
   variances = rep_len(NA, nrow(original_data)-1)
 
   # if reference data is null, operate on the original data
-  if(is.null(reference_data)){
+  if(is.null(anon_data)){
     # iterate over each row of the original data
     for(i in seq(nrow(original_data))){
 
@@ -210,8 +209,8 @@ prediction_uncertainty = function(original_data, k, reference_data = NULL, dist 
       # find the indices of the lowest k distances in the ith row of the distances dataset
       k_best_matches = order(as.matrix(distances[i,]))[1:k]
 
-      # pick the k best matches from the reference_data
-      k_best_matches_rows = reference_data[k_best_matches,]
+      # pick the k best matches from the anon_data
+      k_best_matches_rows = anon_data[k_best_matches,]
 
       # calculate the mean variance of the k best matches rows
       variances[i] = mean(apply(k_best_matches_rows, 2, var))
@@ -228,38 +227,46 @@ prediction_uncertainty = function(original_data, k, reference_data = NULL, dist 
 
 #' Prediction All Measures
 #'
-#' Wrapper function to calculate all the measures for reference and original data,
+#' Wrapper function to calculate all the measures for anonymous and original data,
 #' store them into a list in the order of prediction distance,
 #' prediction ambiguity, and prediction uncertainty,
 #' and return the list.
 #'
 #' @param original_data The original dataset.
 #' @param k Number of kth-nearest records to consider.
-#' @param reference_data The reference dataset.
+#' @param anon_data The anonymous dataset.
 #' @param dist Distance function to use (default: euc_dist).
 #' @return A list containing two sub-lists:
-#'   - original_list: Contains the measures for the original_data without a reference_data.
-#'   - reference_list: Contains the measures for the original_data with the provided reference_data.
+#'   - original_list: Contains the measures for the original_data without a anon_data.
+#'   - anon_list: Contains the measures for the original_data with the provided anon_data.
 #'
 #' @examples
+#' \dontrun{
 #' original_data <- as.data.frame(matrix(1:6, ncol = 2))
-#' reference_data <- as.data.frame(matrix(7:12, ncol = 2))
-#' prediction_all(original_data, k = 2, reference_data)
-#'
+#' anon_data <- as.data.frame(matrix(7:12, ncol = 2))
+#' prediction_all(original_data, k = 2, anon_data)
+#' }
 #' @export
-prediction_all = function(original_data, k, reference_data, dist = euc_dist){
+prediction_all = function(original_data, k, anon_data, dist = euc_dist){
   # Calculate all the measures and store them in a list
-  reference_list = list()
-  reference_list$prediction_distance = prediction_distance(original_data, reference_data, dist)
-  reference_list$prediction_ambiguity = prediction_ambiguity(original_data, k, reference_data, dist)
-  reference_list$prediction_uncertainty = prediction_uncertainty(original_data, k, reference_data, dist)
+
+  # distances 1
+  distances1 = distances(original_data, anon_data, dist)
+
+  anon_list = list()
+  anon_list$prediction_distance = prediction_distance(original_data, anon_data, dist, distances = distances1)
+  anon_list$prediction_ambiguity = prediction_ambiguity(original_data, k, anon_data, dist, distances = distances1)
+  anon_list$prediction_uncertainty = prediction_uncertainty(original_data, k, anon_data, dist, distances = distances1)
+
+  # distances 2
+  distances2 = distances(original_data, NULL, dist)
 
   original_list = list()
-  original_list$prediction_distance = prediction_distance(original_data, reference_data = NULL, dist)
-  original_list$prediction_ambiguity = prediction_ambiguity(original_data, k, reference_data = NULL, dist)
-  original_list$prediction_uncertainty = prediction_uncertainty(original_data, k, reference_data = NULL, dist)
+  original_list$prediction_distance = prediction_distance(original_data, anon_data = NULL, dist, distances = distances2)
+  original_list$prediction_ambiguity = prediction_ambiguity(original_data, k, anon_data = NULL, dist, distances = distances2)
+  original_list$prediction_uncertainty = prediction_uncertainty(original_data, k, anon_data = NULL, dist, distances = distances2)
 
-  return(list(original = original_list, reference = reference_list))
+  return(list(original = original_list, reference = anon_list))
 }
 
 
@@ -273,22 +280,23 @@ prediction_all = function(original_data, k, reference_data, dist = euc_dist){
 #'
 #' @param original_data The original data
 #' @param k The amount of neighbouring points to consider (recommended range: from 5 to 10)
-#' @param reference_data The anonymized data
+#' @param anon_data The anonymized data
 #' @param dist The distance measure to use. (Defaults to eucledian distance)
 #'
 #' @importFrom graphics plot legend lines par title
 #' @importFrom stats ecdf
 #' @examples
+#' \dontrun{
 #' original_data <- as.data.frame(matrix(1:6, ncol = 2))
-#' reference_data <- as.data.frame(matrix(7:12, ncol = 2))
-#' prediction_plot(original_data, k = 2, reference_data)
-#'
+#' anon_data <- as.data.frame(matrix(7:12, ncol = 2))
+#' prediction_plot(original_data, k = 2, anon_data)
+#' }
 #' @export
-prediction_plot = function(original_data, k, reference_data, dist = euc_dist){
+prediction_plot = function(original_data, k, anon_data, dist = euc_dist){
   # plot the measures in original against measures of the same type in reference make par(mfrow = c(3,1)) before calling this function and revert it after calling this function
   par(mfrow = c(3,1))
 
-  prediction_all_output = prediction_all(original_data, k, reference_data, dist)
+  prediction_all_output = prediction_all(original_data, k, anon_data, dist)
 
   # Helper function to make vertical lines if needed
   vert_maker = function(y){
@@ -323,8 +331,8 @@ prediction_plot = function(original_data, k, reference_data, dist = euc_dist){
 
   plot(og[[1]], vert_maker(og[[2]]), type = "l",  xlab = "Ennuste-etäisyys", ylab = "Kertymäfunktio", xlim = c(0, max(prediction_all_output$original$prediction_distance, prediction_all_output$reference$prediction_distance)))
   lines(ref[[1]], vert_maker(ref[[2]]), type = "l", col = "red")
-  legend("topleft", legend = c("Alkuperäinen aineisto", "Anonyymin aineisto"), col = c("black", "red"), lty = 1, cex = 0.8, bg = "transparent")
-  title("Ennuste-etäisyys")
+  legend("topleft", legend = c("Alkuperäinen aineisto", "Anonyymin aineisto"), col = c("black", "red"), lty = 1, cex = 1, bg = "transparent")
+  title("Ennuste-etäisyys", cex.main = 1.35)
 
   og = ecdf_points(prediction_all_output$original$prediction_ambiguity)
   ref = ecdf_points(prediction_all_output$reference$prediction_ambiguity)
@@ -332,8 +340,8 @@ prediction_plot = function(original_data, k, reference_data, dist = euc_dist){
 
   plot(og[[1]], vert_maker(og[[2]]), type = "l",  xlab = "Ennuste-epäselvyys", ylab = "Kertymäfunktio", xlim = c(0, max(prediction_all_output$original$prediction_ambiguity, prediction_all_output$reference$prediction_ambiguity)))
   lines(ref[[1]], vert_maker(ref[[2]]), type = "l", col = "red")
-  legend("topleft", legend = c("Alkuperäinen aineisto", "Anonyymin aineisto"), col = c("black", "red"), lty = 1, cex = 0.8, bg = "transparent")
-  title("Ennuste-epäselvyys")
+  legend("topleft", legend = c("Alkuperäinen aineisto", "Anonyymin aineisto"), col = c("black", "red"), lty = 1, cex = 1, bg = "transparent")
+  title("Ennuste-epäselvyys", cex.main = 1.35 )
 
   og = ecdf_points(prediction_all_output$original$prediction_uncertainty)
   ref = ecdf_points(prediction_all_output$reference$prediction_uncertainty)
@@ -341,8 +349,8 @@ prediction_plot = function(original_data, k, reference_data, dist = euc_dist){
 
   plot(og[[1]], vert_maker(og[[2]]), type = "l",  xlab = "Ennuste-epävarmuus", ylab = "Kertymäfunktio", xlim = c(0, max(prediction_all_output$original$prediction_uncertainty, prediction_all_output$reference$prediction_uncertainty)))
   lines(ref[[1]], vert_maker(ref[[2]]), type = "l", col = "red")
-  legend("topleft", legend = c("Alkuperäinen aineisto", "Anonyymin aineisto"), col = c("black", "red"), lty = 1, cex = 0.8, bg = "transparent")
-  title("Ennuste-epävarmuus")
+  legend("topleft", legend = c("Alkuperäinen aineisto", "Anonyymin aineisto"), col = c("black", "red"), lty = 1, cex = 1, bg = "transparent")
+  title("Ennuste-epävarmuus", cex.main = 1.35)
 
   par(mfrow = c(1,1))
 }
@@ -358,7 +366,7 @@ prediction_plot = function(original_data, k, reference_data, dist = euc_dist){
 #' This function calculates the reidentification rate of a dataset after it has been anonymized. The function one-hot encodes both the original and reference datasets to enable distance calculations, scales the datasets to have mean 0 and standard deviation 1, and then finds the nearest row in the reference data for each row of the original data. The function returns the proportion of correct guesses.
 #'
 #' @param original_data A data frame containing the original dataset
-#' @param reference_data A data frame containing the reference dataset
+#' @param anon_data A data frame containing the reference dataset
 #' @param quasiIdentifiers The quasi-identifiers of the data given as a vector of names.
 #' @importFrom onehot onehot
 #' @param dist An optional distance function to use for calculating distances between rows of the datasets. Defaults to the Euclidean distance function.
@@ -366,16 +374,16 @@ prediction_plot = function(original_data, k, reference_data, dist = euc_dist){
 #' @export
 #' @examples
 #' original_data <- data.frame(x = c(1, 2, 3), y = c(4, 5, 6))
-#' reference_data <- data.frame(x = c(2, 3, 4), y = c(5, 6, 7))
-#' reidentification_rate(original_data, reference_data)
-reidentification_rate = function(original_data, reference_data, quasiIdentifiers,  dist = euc_dist){
+#' anon_data <- data.frame(x = c(2, 3, 4), y = c(5, 6, 7))
+#' reidentification_rate(original_data, anon_data)
+reidentification_rate = function(original_data, anon_data, quasiIdentifiers,  dist = euc_dist){
 
   # Drop rows not in quasiIdentifier
   original_data = original_data[, quasiIdentifiers]
-  reference_data = reference_data[, quasiIdentifiers]
+  anon_data = anon_data[, quasiIdentifiers]
 
   # Calculate distances for every row of the original data against the reference data
-  distances = distances(original_data, reference_data, dist)
+  distances = distances(original_data, anon_data, dist)
 
   # Calculate the reidentification rate, i.e. the proportion of correct guesses, when taking the smallest distance as the best match
   reidentification_rate = sum(apply(distances, 1, which.min) == seq(nrow(original_data)))/nrow(original_data)

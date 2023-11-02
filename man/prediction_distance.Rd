@@ -4,18 +4,25 @@
 \alias{prediction_distance}
 \title{Prediction Distance}
 \usage{
-prediction_distance(original_data, reference_data = NULL, dist = euc_dist)
+prediction_distance(
+  original_data,
+  anon_data = NULL,
+  dist = euc_dist,
+  distances = NULL
+)
 }
 \arguments{
 \item{original_data}{The original dataset.}
 
-\item{reference_data}{The reference dataset (default: NULL).}
+\item{anon_data}{The reference dataset (default: NULL).}
 
 \item{dist}{Distance function to use (default: euc_dist).}
+
+\item{distances}{precalculated distances (optional)}
 }
 \value{
-A numeric vector containing the distances between each row of the original_data and the reference_data.
+A numeric vector containing the distances between each row of the original_data and the anon_data.
 }
 \description{
-Calculate distances between each row of the original_data and the reference_data using the specified distance function.
+Calculate distances between each row of the original_data and the anon_data using the specified distance function.
 }

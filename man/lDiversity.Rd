@@ -10,7 +10,7 @@ lDiversity(
   l,
   quasiIdentifiers = NULL,
   anonymizationFunctions = NULL,
-  k = 5,
+  k = 1,
   shuffle = FALSE
 )
 }
@@ -26,9 +26,8 @@ name the columns in ascending order of importance. If quasi-identifiers are nor 
 
 \item{anonymizationFunctions}{A named list of anonymization functions for each quasi-identifier column (default: NULL). If not provided, mean and mode will be used for numericals and non-numericals respectively.}
 
-\item{k}{(Default 5) The minimum number of rows in an l diverse subset. Not stricly an l-diversity
-requirement, but here to accomodate for Finnish law / customs on
-anonymous data publishing.}
+\item{k}{(Default 1) The minimum number of rows in an l diverse subset. Not stricly an l-diversity
+requirement, but here to be used if needed. Can be increased to improve privacy.}
 
 \item{shuffle}{Whether to shuffle the dataset before returning. Warning if FALSE, used to calculate empirical reidentification rate.}
 }
@@ -46,8 +45,7 @@ until the desired level of l-diversity is achieved. Quasi-identifiers are
 columns which combined can identify a person in the data. Quasi-identifiers
 include but are not limited to: age, gender, zip-code, profession...
 Sensitive attributes are attributes which values could cause harm to a person
-if revealed. Sensitive attributes may include: health information, beliefs,
-sexual orientation...
+if revealed. Sensitive attributes may include: health information and beliefs etc.
 }
 \examples{
 \dontrun{

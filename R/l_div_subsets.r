@@ -48,9 +48,8 @@ isLDiverse <- function(data, sensitiveAttributes, quasiIdentifiers, l) {
 #' name the columns in ascending order of importance. If quasi-identifiers are nor provided, all columns will be assumed to be quasi-identifiers and modified in descending order of cardinality.
 #' @param anonymizationFunctions A named list of anonymization functions for each quasi-identifier column (default: NULL). If not provided, mean and mode will be used for numericals and non-numericals respectively.
 #' @param l The desired minimum number of distinct values for each sensitive attribute within each group.
-#' @param k (Default 5) The minimum number of rows in an l diverse subset. Not stricly an l-diversity
-#'          requirement, but here to accomodate for Finnish law / customs on
-#'          anonymous data publishing.
+#' @param k (Default 1) The minimum number of rows in an l diverse subset. Not stricly an l-diversity
+#'          requirement, but here to be used if needed. Can be increased to improve privacy.
 #' @param shuffle Whether to shuffle the dataset before returning. Warning if FALSE, used to calculate empirical reidentification rate.
 #'
 #' @details
@@ -61,10 +60,7 @@ isLDiverse <- function(data, sensitiveAttributes, quasiIdentifiers, l) {
 #' columns which combined can identify a person in the data. Quasi-identifiers
 #' include but are not limited to: age, gender, zip-code, profession...
 #' Sensitive attributes are attributes which values could cause harm to a person
-#' if revealed. Sensitive attributes may include: health information, beliefs,
-#' sexual orientation...
-#'
-#'
+#' if revealed. Sensitive attributes may include: health information and beliefs etc.
 #'
 #' @return An l-diverse data frame.
 #'
@@ -76,7 +72,7 @@ isLDiverse <- function(data, sensitiveAttributes, quasiIdentifiers, l) {
 #' lDiversity(iris, "Species", l = 2)
 #'}
 #' @export
-lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymizationFunctions = NULL, k=5, shuffle = FALSE) {
+lDiversity <- function(data, sensitiveAttributes, l, quasiIdentifiers = NULL, anonymizationFunctions = NULL, k=1, shuffle = FALSE) {
 
   # For runtime
   start_time <- Sys.time()

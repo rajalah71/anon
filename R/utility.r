@@ -529,14 +529,15 @@ roc_plot = function(model, model_anon, test, test_anon = NULL){
     coord_equal(expand = FALSE) +
     theme_classic(base_size = 15) +
     theme(plot.margin = margin(10, 30, 10, 10)) +
-    ggtitle("ROC -käyrät") +
+    ggtitle("ROC-käyrät", ) +
+    theme(plot.title = element_text(size = 25)) +
     scale_color_manual(values = c("Alkuperäinen aineisto" = "black", "Anonyymi aineisto" = "red")) +
     theme(legend.position = c(0.9, 0.1), legend.justification = c(1, 0))    +
     labs(color = "Mallit", subtitle = paste0(paste0("Alkuperäinen aineisto, AUC = ", round(roc1$auc, 3)), paste0(". Anonyymi aineisto, AUC = ", round(roc2$auc, 3), ".")), size = 0.1) +
     theme(plot.subtitle = element_text(size = 13))+
     theme( panel.border = element_rect(colour = "black", fill=NA)) +
     theme(legend.background = element_blank(),
-          legend.box.background = element_rect(colour = "black"))
+          legend.box.background = element_rect(colour = "black"), legend.text = element_text(size=15))
 
 
 }
@@ -590,7 +591,7 @@ testRsquared = function(model_list, testData, responseVar){
 #' @param dataframelist A list of data frames to compare.
 #'
 #' @return A list containing two elements: "Medians" (median differences in column means) and "MADs" (median absolute deviations of column means).
-#' @importFrom stats median mad
+#' @importFrom stats median mad sd
 medianDiffsinMean = function(dataframelist){
   # Drop non-numeric columns
   dataframelist = lapply(dataframelist, function(df) df[, sapply(df, is.numeric)])
@@ -629,13 +630,8 @@ medianDiffsinMean = function(dataframelist){
 #'
 #' @return A list containing two elements: "Medians" (median differences in column variances) and "MADs" (median absolute deviations of column variances).
 #'
-#' @importFrom stats median mad
+#' @importFrom stats median mad sd
 medianDiffsinVar = function(dataframelist){
-
-  # Define colvars
-  colVars <- function(x, na.rm = FALSE) {
-    apply(x, 2, var, na.rm = na.rm)
-  }
 
   # Drop non-numeric columns
   dataframelist = lapply(dataframelist, function(df) df[, sapply(df, is.numeric)])
@@ -673,7 +669,7 @@ medianDiffsinVar = function(dataframelist){
 #'
 #' @return A list containing two elements: "Medians" (median differences in correlation matrices) and "MADs" (median absolute deviations of correlation matrices).
 #'
-#' @importFrom stats median mad cor
+#' @importFrom stats median mad cor sd
 medianDiffsinCor = function(dataframelist){
   # Drop non-numeric columns
   dataframelist = lapply(dataframelist, function(df) df[, sapply(df, is.numeric)])
@@ -728,3 +724,24 @@ mediansAll = function(dataframelist){
   print("Cors:")
   print(medianDiffsinCor(dataframelist))
 }
+
+#colVars-------------------------------------------------
+
+#' Calculate Column Variances
+#'
+#' Calculate the variances of columns in a data frame.
+#'
+#' @param df A data frame.
+#' @param na.rm Logical. Should missing values (NA) be removed?
+#'
+#' @return A numeric vector of variances for each column.
+#'
+#' @examples
+#' \dontrun{
+#' variances <- colVars(data_frame)
+#' }
+#' @export
+colVars <- function(df, na.rm = FALSE) {
+  apply(df, 2, var, na.rm = na.rm)
+}
+

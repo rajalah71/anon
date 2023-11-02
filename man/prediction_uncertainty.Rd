@@ -7,8 +7,9 @@
 prediction_uncertainty(
   original_data,
   k,
-  reference_data = NULL,
-  dist = euc_dist
+  anon_data = NULL,
+  dist = euc_dist,
+  distances = NULL
 )
 }
 \arguments{
@@ -16,9 +17,11 @@ prediction_uncertainty(
 
 \item{k}{Number of best matches to find.}
 
-\item{reference_data}{The reference dataset of the same column space (default: NULL).}
+\item{anon_data}{The reference dataset of the same column space (default: NULL).}
 
 \item{dist}{Distance function to use (default: euc_dist).}
+
+\item{distances}{precalculated distances (optional)}
 }
 \value{
 A numeric vector containing the variances for each row of the original_data.
@@ -31,8 +34,4 @@ If the reference data is null, the function performs leave-one-out method to
 calculate the distance between each row of the original data against the rest
 nof the original data. Onehot encode and scale the datasets to
 enable distance calculations.
-}
-\examples{
-prediction_uncertainty(original_data = iris, k = 3)
-
 }

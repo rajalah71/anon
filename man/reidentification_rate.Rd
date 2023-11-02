@@ -6,7 +6,7 @@
 \usage{
 reidentification_rate(
   original_data,
-  reference_data,
+  anon_data,
   quasiIdentifiers,
   dist = euc_dist
 )
@@ -14,7 +14,7 @@ reidentification_rate(
 \arguments{
 \item{original_data}{A data frame containing the original dataset}
 
-\item{reference_data}{A data frame containing the reference dataset}
+\item{anon_data}{A data frame containing the reference dataset}
 
 \item{quasiIdentifiers}{The quasi-identifiers of the data given as a vector of names.}
 
@@ -28,6 +28,6 @@ This function calculates the reidentification rate of a dataset after it has bee
 }
 \examples{
 original_data <- data.frame(x = c(1, 2, 3), y = c(4, 5, 6))
-reference_data <- data.frame(x = c(2, 3, 4), y = c(5, 6, 7))
-reidentification_rate(original_data, reference_data)
+anon_data <- data.frame(x = c(2, 3, 4), y = c(5, 6, 7))
+reidentification_rate(original_data, anon_data)
 }
