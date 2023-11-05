@@ -610,15 +610,46 @@ medianDiffsinMean = function(dataframelist){
   # calculate column means for each other dataframe of the list.
   other_means = lapply(scaled_dataframelist, colMeans)
 
-  # Calculate the Median Absolute Deviation for colmeans for each dataset
-  df_mads = lapply(other_means, function(df) mad(df, constant = 1, center = rep(0, length(ref_means))))
+  # Calculate absolute distances from the reference means for each dataframe to colmeans of 0
+  abs_diffs = lapply(other_means, function(om) abs(om))
 
   # Calculate the median difference in colmeans for each dataframe in the list
-  med_diffs = sapply(other_means, function(om) median(abs(om)))
+  med_diffs = lapply(abs_diffs, function(ad) median(ad)) # returned
 
-  # Return a named vector of median differences
-  names(med_diffs) = names[-1]
-  return(list("Medians" = med_diffs, "MADs" = unlist(df_mads)))
+  # subtract the the med_diffs item i from the abs_diffs item i
+  abs_diffs = lapply(seq_along(med_diffs), function(i) median(abs(abs_diffs[[i]] - med_diffs[[i]]))) # returned
+
+  # Name the list items
+  names(abs_diffs) = names[-1]
+
+  # return
+  return(list("Medians" = unlist(med_diffs), "MADs" = unlist(abs_diffs)))
+
+  #print(med_diffs)
+
+  # Calculate the absolute distance to their corresponding median in each dataset and take a median from that
+  # abs_distances = list()
+  # for(i in seq_along(med_diffs)){
+  #   abs_distances[[i]] = median(abs(abs_diffs[[i]] - med_diffs[[i]]))
+  # }
+  #
+  # print(abs_distances)
+
+  # Calculate median of abs_diffs
+  #med_abs_diffs = sapply(abs_diffs, function(ad) median(ad)) # returned
+
+  #return
+  #return(list("Medians" = med_diffs, "MADs" = med_abs_diffs))
+
+  # # Calculate the Median Absolute Deviation for colmeans for each dataset
+  # df_mads = lapply(other_means, function(df) mad(df, constant = 1, center = rep(0, length(ref_means))))
+  #
+  # # Calculate the median difference in colmeans for each dataframe in the list
+  # med_diffs = sapply(other_means, function(om) median(abs(om)))
+  #
+  # # Return a named vector of median differences
+  # names(med_diffs) = names[-1]
+  # return(list("Medians" = med_diffs, "MADs" = unlist(df_mads)))
 }
 
 
@@ -647,18 +678,50 @@ medianDiffsinVar = function(dataframelist){
   # Scale the other dataframes with the reference means and sds
   scaled_dataframelist = lapply(dataframelist[-1], function(df) scale(df, ref_means, ref_sds))
 
-  # calculate column vars for each other dataframe of the list.
+  # calculate column variances for each other dataframe of the list.
   other_vars = lapply(scaled_dataframelist, colVars)
 
-  # Calculate the Median Absolute Deviation for colvars for each dataset
-  df_mads = lapply(other_vars, function(df) mad(df, constant = 1, center = rep(1, length(ref_means))))
+  # Calculate absolute distances from the reference vars for each dataframe to colvars of 1
+  abs_diffs = lapply(other_vars, function(ov) abs(ov - rep(1, length(ref_means))))
 
   # Calculate the median difference in colvars for each dataframe in the list
-  med_diffs = sapply(other_vars, function(ov) median(abs(ov-1)))
+  med_diffs = lapply(abs_diffs, function(ad) median(ad)) # returned
 
-  # Return a named vector of median differences
-  names(med_diffs) = names[-1]
-  return(list("Medians" = med_diffs, "MADs" = unlist(df_mads)))
+  # subtract the the med_diffs item i from the abs_diffs item i
+  abs_diffs = lapply(seq_along(med_diffs), function(i) median(abs(abs_diffs[[i]] - med_diffs[[i]]))) # returned
+
+  # Name the list items
+  names(abs_diffs) = names[-1]
+
+  # return
+  return(list("Medians" = unlist(med_diffs), "MADs" = unlist(abs_diffs)))
+
+  # # Drop non-numeric columns
+  # dataframelist = lapply(dataframelist, function(df) df[, sapply(df, is.numeric)])
+  #
+  # # Get names of the dataframes
+  # names = names(dataframelist)
+  #
+  # # The first item in the list is the reference dataframe. Calculate colmeans and vars for each column.
+  # ref_df = dataframelist[[1]]
+  # ref_means = colMeans(ref_df)
+  # ref_sds = sapply(ref_df, sd)
+  #
+  # # Scale the other dataframes with the reference means and sds
+  # scaled_dataframelist = lapply(dataframelist[-1], function(df) scale(df, ref_means, ref_sds))
+  #
+  # # calculate column vars for each other dataframe of the list.
+  # other_vars = lapply(scaled_dataframelist, colVars)
+  #
+  # # Calculate the Median Absolute Deviation for colvars for each dataset
+  # df_mads = lapply(other_vars, function(df) mad(df, constant = 1, center = rep(1, length(ref_means))))
+  #
+  # # Calculate the median difference in colvars for each dataframe in the list
+  # med_diffs = sapply(other_vars, function(ov) median(abs(ov-1)))
+  #
+  # # Return a named vector of median differences
+  # names(med_diffs) = names[-1]
+  # return(list("Medians" = med_diffs, "MADs" = unlist(df_mads)))
 }
 
 #' Median Difference in Correlation Matrices

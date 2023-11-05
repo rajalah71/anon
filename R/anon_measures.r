@@ -329,27 +329,27 @@ prediction_plot = function(original_data, k, anon_data, dist = euc_dist){
   ref = ecdf_points(prediction_all_output$reference$prediction_distance)
   # prediction_distance
 
-  plot(og[[1]], vert_maker(og[[2]]), type = "l",  xlab = "Ennuste-etäisyys", ylab = "Kertymäfunktio", xlim = c(0, max(prediction_all_output$original$prediction_distance, prediction_all_output$reference$prediction_distance)))
+  plot(og[[1]], vert_maker(og[[2]]), type = "l",  xlab = "Ennuste-etäisyys", cex.lab = 1.3, ylab = "Kertymäfunktio",   xlim = c(0, max(prediction_all_output$original$prediction_distance, prediction_all_output$reference$prediction_distance)))
   lines(ref[[1]], vert_maker(ref[[2]]), type = "l", col = "red")
-  legend("topleft", legend = c("Alkuperäinen aineisto", "Anonyymin aineisto"), col = c("black", "red"), lty = 1, cex = 1, bg = "transparent")
+  legend("topleft", legend = c("Alkuperäinen aineisto", "Anonyymi aineisto"), col = c("black", "red"), lty = 1, cex = 1.1, bg = "transparent")
   title("Ennuste-etäisyys", cex.main = 1.35)
 
   og = ecdf_points(prediction_all_output$original$prediction_ambiguity)
   ref = ecdf_points(prediction_all_output$reference$prediction_ambiguity)
   # prediction_ambiguity
 
-  plot(og[[1]], vert_maker(og[[2]]), type = "l",  xlab = "Ennuste-epäselvyys", ylab = "Kertymäfunktio", xlim = c(0, max(prediction_all_output$original$prediction_ambiguity, prediction_all_output$reference$prediction_ambiguity)))
+  plot(og[[1]], vert_maker(og[[2]]), type = "l",  xlab = "Ennuste-epäselvyys", cex.lab = 1.3, ylab = "Kertymäfunktio", xlim = c(0, max(prediction_all_output$original$prediction_ambiguity, prediction_all_output$reference$prediction_ambiguity)))
   lines(ref[[1]], vert_maker(ref[[2]]), type = "l", col = "red")
-  legend("topleft", legend = c("Alkuperäinen aineisto", "Anonyymin aineisto"), col = c("black", "red"), lty = 1, cex = 1, bg = "transparent")
+  legend("topleft", legend = c("Alkuperäinen aineisto", "Anonyymi aineisto"), col = c("black", "red"), lty = 1, cex = 1.1, bg = "transparent")
   title("Ennuste-epäselvyys", cex.main = 1.35 )
 
   og = ecdf_points(prediction_all_output$original$prediction_uncertainty)
   ref = ecdf_points(prediction_all_output$reference$prediction_uncertainty)
   # prediction_uncertainty
 
-  plot(og[[1]], vert_maker(og[[2]]), type = "l",  xlab = "Ennuste-epävarmuus", ylab = "Kertymäfunktio", xlim = c(0, max(prediction_all_output$original$prediction_uncertainty, prediction_all_output$reference$prediction_uncertainty)))
+  plot(og[[1]], vert_maker(og[[2]]), type = "l",  xlab = "Ennuste-epävarmuus", cex.lab = 1.3, ylab = "Kertymäfunktio", xlim = c(0, max(prediction_all_output$original$prediction_uncertainty, prediction_all_output$reference$prediction_uncertainty)))
   lines(ref[[1]], vert_maker(ref[[2]]), type = "l", col = "red")
-  legend("topleft", legend = c("Alkuperäinen aineisto", "Anonyymin aineisto"), col = c("black", "red"), lty = 1, cex = 1, bg = "transparent")
+  legend("topleft", legend = c("Alkuperäinen aineisto", "Anonyymi aineisto"), col = c("black", "red"), lty = 1, cex = 1.1, bg = "transparent")
   title("Ennuste-epävarmuus", cex.main = 1.35)
 
   par(mfrow = c(1,1))
