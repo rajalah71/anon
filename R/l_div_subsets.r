@@ -274,7 +274,7 @@ findNearestSubset <- function(subset, subsets, quasiIdentifiers) {
 
 #----------------
 
-# Function to calculate the distance between mean vectors of two subsets (must be inputed as lits)
+# Function to calculate the distance between mean vectors of two subsets (must be imputed as lists)
 #' Calculate the diversity distance between two subsets based on the given quasi-identifiers
 #'
 #' This function calculates the diversity distance between two subsets based on the given quasi-identifiers.

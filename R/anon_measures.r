@@ -65,7 +65,7 @@ distances = function(original_data, anon_data = NULL, dist = euc_dist){
   og_colmeans = colMeans(original_data)
   og_colvars = colVars(original_data)
   original_data = scale(original_data)
-  if(!is.null(anon_data)) anon_data = scale(anon_data, og_colmeans, og_colvars)
+  if(!is.null(anon_data)) anon_data = scale(anon_data, og_colmeans, sqrt(og_colvars))
 
   # calculate the distance between each row of the original data against every row of the reference data and return the sorted for each row
   # if anon_data is null, the distance is calculated by leaving one row out of the original data and calculating the distance between the left out row and the rest of the original data
