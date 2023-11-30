@@ -149,8 +149,8 @@ spectral = function(data, anonymizer, on_matrices = "U", preserveMeans = TRUE,  
     u_anon = anonymizer(as.data.frame(svd$u))
     udv_anon = as.matrix(u_anon) %*% d_matrix %*% t(svd$v)
   } else if(on_matrices == "V"){
-    v_anon = anonymizer(as.data.frame(svd$v))
-    udv_anon = svd$u %*% d_matrix %*% as.matrix(t(v_anon))
+    v_anon = anonymizer(as.data.frame(t(svd$v)))
+    udv_anon = svd$u %*% d_matrix %*% as.matrix(v_anon)
   } else if(on_matrices == "UD"){
     ud_anon = anonymizer(as.data.frame(svd$u %*% d_matrix))
     udv_anon = as.matrix(ud_anon) %*% t(svd$v)
