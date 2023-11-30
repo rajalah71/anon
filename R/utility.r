@@ -533,11 +533,12 @@ roc_plot = function(model, model_anon, test, test_anon = NULL){
     theme(plot.title = element_text(size = 25)) +
     scale_color_manual(values = c("Alkuperäinen aineisto" = "black", "Anonyymi aineisto" = "red")) +
     theme(legend.position = c(0.9, 0.1), legend.justification = c(1, 0))    +
-    labs(color = "Mallit", subtitle = paste0(paste0("Alkuperäinen aineisto, AUC = ", round(roc1$auc, 3)), paste0(". Anonyymi aineisto, AUC = ", round(roc2$auc, 3), ".")), size = 0.1) +
-    theme(plot.subtitle = element_text(size = 13))+
+    labs(color = "Mallit", subtitle = paste0(paste0("Alkuperäisen aineiston AUC = ", round(roc1$auc, 3)), paste0(".\nAnonyymin aineiston AUC = ", round(roc2$auc, 3), ".")), size = 0.1) +
+    theme(plot.subtitle = element_text(size = 15))+
     theme( panel.border = element_rect(colour = "black", fill=NA)) +
     theme(legend.background = element_blank(),
-          legend.box.background = element_rect(colour = "black"), legend.text = element_text(size=15))
+          legend.box.background = element_rect(colour = "black"), legend.text = element_text(size=15))+
+    theme(axis.text.y = element_text(size = 12), axis.text.x = element_text(size = 12))
 
 
 }
