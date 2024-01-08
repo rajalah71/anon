@@ -136,6 +136,8 @@ roc_plot_list = function(model_list, anon_model_list, test_list, test_anon_list 
   df_list = lapply(seq_along(model_list), function(i) rbind(cbind(model = "Alkuperäinen aineisto", coords(roc_list[[i]])),
               cbind(model = "Anonyymi aineisto", coords(anon_roc_list[[i]]))))
 
+  print("checkpoint")
+
   # Plot the ROC curves with color red for anonymous data and black for original data. Use opacity to show overlapping curves
   ggplot() +
     lapply(seq_along(model_list), function(i) geom_line(data = df_list[[i]], aes(1 - specificity, sensitivity, color = model), size = 1, linewidth = 0.1, alpha = 0.1)) +
