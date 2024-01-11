@@ -269,7 +269,37 @@ prediction_all = function(original_data, k, anon_data, dist = euc_dist){
   return(list(original = original_list, reference = anon_list))
 }
 
+#' Prediction All Measures list version
+#'
+#' Wrapper function to calculate all the measures for anonymous and original data,
+#' store them into a list in the order of prediction distance,
+#' prediction ambiguity, and prediction uncertainty,
+#' and return the list.
+#'
+#' @param datalist A list containing original and anonymous data
+#' @param k Number of kth-nearest records to consider.
+#' @param dist Distance function to use (default: euc_dist).
+#' @return A list containing two sub-lists:
+#'   - original_list: Contains the measures for the original_data without a anon_data.
+#'   - anon_list: Contains the measures for the original_data with the provided anon_data.
+#'
+#' @examples
+#' \dontrun{
+#' original_data <- as.data.frame(matrix(1:6, ncol = 2))
+#' anon_data <- as.data.frame(matrix(7:12, ncol = 2))
+#' prediction_all(original_data, k = 2, anon_data)
+#' }
+#' @export
+prediction_all_list = function(datalist, k, dist = euc_dist){
+  # Calculate all the measures and store them in a list
 
+  # calculate prediction_all for all data pairs (original and anonymous) in the list
+  pred_all_list = lapply(seq_along(datalist), function(i){
+    prediction_all(datalist[[i]][[1]], k, datalist[[i]][[2]], dist)
+  })
+
+  return(pred_all_list)
+}
 
 #-----------------------------------------------------------------
 
