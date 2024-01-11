@@ -579,3 +579,52 @@ reidentification_rate = function(data_list, quasiIdentifiers, n = 1000,  dist = 
 
 }
 
+#ri rate list-------------------------------------------------------------
+
+#' Calculate the reidentification rate of a dataset after anonymization
+#'
+#' This function calculates the reidentification rate of a dataset after it has been anonymized. The function one-hot encodes both the original and reference datasets to enable distance calculations, scales the datasets to have mean 0 and standard deviation 1, and then finds the nearest row in the reference data for each row of the original data. The function returns the proportion of correct guesses.
+#'
+#' @param data_list A list containing original and anon items
+#' @param quasiIdentifiers The quasi-identifiers of the data given as a vector of names.
+#' @param n The number of times to calculate the reidentification rate
+#' @importFrom onehot onehot
+#' @param dist An optional distance function to use for calculating distances between rows of the datasets. Defaults to the Euclidean distance function.
+#' @return A numeric value representing the proportion of correct guesses
+#' @export
+#' @examples
+#' \dontrun{
+#' reidentification_rate(data_list, quasiIdentifiers, n)
+#' }
+reidentification_rate_list = function(data_list, quasiIdentifiers, n = 100,  dist = euc_dist){
+
+  # Drop non quasi identifiers from datalist items [[1]] and [[2]]
+  og_datalist = lapply(seq_along(data_list), function(x) data_list[[x]][[1]][, quasiIdentifiers])
+  anon_datalist = lapply(seq_along(data_list), function(x) data_list[[x]][[2]][, quasiIdentifiers])
+
+  # Calculate distances for every row of the original data against the reference data
+  distances = lapply(seq_along(data_list), function(x) distances(og_datalist[[x]], anon_datalist[[x]], dist))
+
+  # Iterate over each model n times. For each loop, take a random permutation of 1:n, reorder the distances objects by column with it and calculate the reidentification rate each time
+  all_model_rirates = list()
+  for(i in seq_along(distances)){
+
+    # Emtpty vector for reidentification rates
+    model_rirates = rep(NA, n)
+
+    # Calculate reidentification rate n times for each distances object, to get a more precise estimate
+    for(j in 1:n){
+      permutation = sample(1:nrow(original_data))
+      permutated_distances = distances[[i]][, permutation]
+      reidentification_rate = sum(apply(permutated_distances, 1, which.min) == order(permutation)) / nrow(original_data)
+      model_rirates[j] = reidentification_rate
+    }
+
+    # Add ri_rate of the model to the list
+    all_model_rirates[[names(data_list)[i]]] = model_rirates
+  }
+
+  # return mean of all_model_rirates
+  return(mean(unlist(all_model_rirates)))
+
+}
