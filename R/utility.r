@@ -1,4 +1,4 @@
-#-----------------------------------------------------
+#R^2-----------------------------------------------------
 
 #' Test R-squared for Multiple Models
 #'
@@ -36,7 +36,42 @@ testRsquared = function(model_list, testData, responseVar){
   return(cbind(names, results))
 }
 
-#-----------------------------------------------------
+#' Test R-squared for single model with several repetitions
+#'
+#' Calculate R-squared values for multiple models on test data.
+#'
+#' @param model_list A list of models trained on anony
+#' @param responseVar The name of the response variable.
+#'
+#' @return A named list of R-squared values for each model.
+#'
+#' @examples
+#' \dontrun{
+#' # Example usage:
+#' model_list <- list(model1, model2, model3)
+#' testRsquared(model_list, test_data, "response_variable")
+#'}
+#' @export
+testRsquared_list = function(model_list, test_datalist, responseVar){
+
+  # Get the model names and initialize a vector for results
+  names = names(model_list)
+  results = rep(NA, length(model_list))
+
+  # Calculate R-squared for each model on the test data
+  test_mean = mean(testData[, responseVar])
+  for(i in seq_along(model_list)){
+    model_preds = predict(model_list[[i]], testData[,colnames(testData) != responseVar])
+    ss_res = sum((testData[, responseVar] - model_preds)^2)
+    ss_tot = sum((testData[, responseVar] - test_mean)^2)
+    results[i] = 1 - ss_res/ss_tot
+  }
+
+  # Return the results
+  return(cbind(names, results))
+}
+
+#rocplots-----------------------------------------------------
 
 #' ROC Plot
 #'
@@ -94,7 +129,7 @@ roc_plot = function(model, model_anon, test, test_anon = NULL){
     theme(plot.subtitle = element_text(size = 15))+
     theme( panel.border = element_rect(colour = "black", fill=NA)) +
     theme(legend.background = element_blank(),
-          legend.box.background = element_rect(colour = "black"), legend.text = element_text(size=15))+
+    legend.box.background = element_rect(colour = "black"), legend.text = element_text(size=15))+
     theme(axis.text.y = element_text(size = 12), axis.text.x = element_text(size = 12))
 
 
@@ -138,28 +173,30 @@ roc_plot_list = function(model_list, anon_model_list, test_list, test_anon_list 
 
   print("checkpoint")
 
-  # Plot the ROC curves with color red for anonymous data and black for original data. Use opacity to show overlapping curves
-  ggplot() +
-    lapply(seq_along(model_list), function(i) geom_line(data = df_list[[i]], aes(1 - specificity, sensitivity, color = model), size = 1, linewidth = 0.1, alpha = 0.1)) +
-    geom_abline() +
+  # Combine the dataframes into a single dataframe
+  combined_df = do.call(rbind, df_list)
+
+  # Create a ggplot object
+  p <- ggplot(combined_df, aes(1 - specificity, sensitivity, color = model)) +
+    geom_line(size = 1, linewidth = 0.1, alpha = 0.5) +
     scale_x_continuous("1 - tarkkuus") +
     scale_y_continuous("Herkkyys") +
     coord_equal(expand = FALSE) +
     theme_classic(base_size = 15) +
     theme(plot.margin = margin(10, 30, 10, 10)) +
-    ggtitle("ROC-käyrät", ) +
+    ggtitle("ROC-käyrät") +
     theme(plot.title = element_text(size = 25)) +
     scale_color_manual(values = c("Alkuperäinen aineisto" = "black", "Anonyymi aineisto" = "red")) +
-    theme(legend.position = c(0.9, 0.1), legend.justification = c(1, 0))    +
+    theme(legend.position = c(0.9, 0.1), legend.justification = c(1, 0)) +
     labs(color = "Mallit", subtitle = paste0(paste0("Alkuperäisen aineiston AUC = ", round(roc_list[[1]]$auc, 3)), paste0(".\nAnonyymin aineiston AUC = ", round(anon_roc_list[[1]]$auc, 3), ".")), size = 0.1) +
-    theme(plot.subtitle = element_text(size = 15))+
-    theme( panel.border = element_rect(colour = "black", fill=NA)) +
+    theme(plot.subtitle = element_text(size = 15)) +
+    theme(panel.border = element_rect(colour = "black", fill=NA)) +
     theme(legend.background = element_blank(),
-          legend.box.background = element_rect(colour = "black"), legend.text = element_text(size=15))+
+          legend.box.background = element_rect(colour = "black"),
+          legend.text = element_text(size=15)) +
     theme(axis.text.y = element_text(size = 12), axis.text.x = element_text(size = 12))
 
-
-
-
+  # Return the ggplot object
+  return(p)
 
 }
