@@ -139,6 +139,7 @@ roc_plot = function(model, model_anon, test, test_anon = NULL){
 #'
 #' Generate an ROC plot comparing the performance of a model on original and anonymized data.
 #'
+#' @param targetIndex The index of the target variable in the test data.
 #' @param model_list The model trained on original data.
 #' @param anon_model_list The model trained on anonymized data.
 #' @param test_list The test dataset where the response variable is on the first column.
@@ -154,30 +155,26 @@ roc_plot = function(model, model_anon, test, test_anon = NULL){
 #'
 #' @export
 # roc_plot but with one list of models, with items [1] being trained on original data and [2] on anon data
-roc_plot_list = function(model_list, anon_model_list, test_list, test_anon_list = NULL){
+roc_plot_list = function(targetIndex = 1, model_list, anon_model_list, test_list, test_anon_list = NULL){
 
   # If not provided, use the same test for both
   if(is.null(test_anon_list)) test_anon_list = test_list
 
   # Predict the values for the test data on both original and anonymous models
-  model_pred_list = lapply(seq_along(model_list), function(i) predict(model_list[[i]], (test_list[[i]][,-1])))
-  anon_pred_list = lapply(seq_along(anon_model_list), function(i) predict(anon_model_list[[i]], (test_anon_list[[i]][,-1])))
+  model_pred_list = lapply(seq_along(model_list), function(i) predict(model_list[[i]], (test_list[[i]][,-targetIndex])))
+  anon_pred_list = lapply(seq_along(anon_model_list), function(i) predict(anon_model_list[[i]], (test_anon_list[[i]][,-targetIndex])))
 
   # Calculate ROC curves for both data
-  roc_list = lapply(seq_along(model_list), function(i) roc(as.factor(test_list[[i]][,1]), model_pred_list[[i]], auc = TRUE))
-  anon_roc_list = lapply(seq_along(anon_model_list), function(i) roc(as.factor(test_anon_list[[i]][,1]), anon_pred_list[[i]], auc = TRUE))
+  roc_list = lapply(seq_along(model_list), function(i) roc(as.factor(test_list[[i]][,targetIndex]), model_pred_list[[i]], auc = TRUE))
+  anon_roc_list = lapply(seq_along(anon_model_list), function(i) roc(as.factor(test_anon_list[[i]][,targetIndex]), anon_pred_list[[i]], auc = TRUE))
 
   # Combine the results into a single dataframe list
   df_list = lapply(seq_along(model_list), function(i) rbind(cbind(model = "Alkuperäinen aineisto", coords(roc_list[[i]])),
               cbind(model = "Anonyymi aineisto", coords(anon_roc_list[[i]]))))
 
-  print("checkpoint")
-
-  # Combine the dataframes into a single dataframe
-  combined_df = do.call(rbind, df_list)
 
   # Create a ggplot object
-  p <- ggplot(combined_df, aes(1 - specificity, sensitivity, color = model)) +
+  p <- ggplot(df_list[[1]], aes(1 - specificity, sensitivity, color = model)) +
     geom_line(size = 1, linewidth = 0.1, alpha = 0.5) +
     scale_x_continuous("1 - tarkkuus") +
     scale_y_continuous("Herkkyys") +

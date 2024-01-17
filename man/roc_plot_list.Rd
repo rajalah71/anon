@@ -4,9 +4,17 @@
 \alias{roc_plot_list}
 \title{ROC Plot list}
 \usage{
-roc_plot_list(model_list, anon_model_list, test_list, test_anon_list = NULL)
+roc_plot_list(
+  targetIndex = 1,
+  model_list,
+  anon_model_list,
+  test_list,
+  test_anon_list = NULL
+)
 }
 \arguments{
+\item{targetIndex}{The index of the target variable in the test data.}
+
 \item{model_list}{The model trained on original data.}
 
 \item{anon_model_list}{The model trained on anonymized data.}
