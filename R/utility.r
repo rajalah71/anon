@@ -54,21 +54,20 @@ testRsquared = function(model_list, testData, responseVar){
 #' @export
 testRsquared_list = function(model_list, test_datalist, responseVar){
 
-  # Get the model names and initialize a vector for results
-  names = names(model_list)
-  results = rep(NA, length(model_list))
-
-  # Calculate R-squared for each model on the test data
-  test_mean = mean(testData[, responseVar])
-  for(i in seq_along(model_list)){
-    model_preds = predict(model_list[[i]], testData[,colnames(testData) != responseVar])
+  # Function to calculate R-squared for a single model on test data
+  testRsquared = function(model, testData, responseVar){
+    test_mean = mean(testData[, responseVar])
+    model_preds = predict(model, testData[,colnames(testData) != responseVar])
     ss_res = sum((testData[, responseVar] - model_preds)^2)
     ss_tot = sum((testData[, responseVar] - test_mean)^2)
-    results[i] = 1 - ss_res/ss_tot
+    return(1 - ss_res/ss_tot)
   }
 
-  # Return the results
-  return(cbind(names, results))
+  # Calculate R-squared for each model on the test data
+  results = lapply(seq_along(model_list), function(i) testRsquared(model_list[[i]], test_datalist[[i]], responseVar))
+
+  # Return the mean of the results
+  return(mean(unlist(results)))
 }
 
 #rocplots-----------------------------------------------------
@@ -169,13 +168,20 @@ roc_plot_list = function(targetIndex = 1, model_list, anon_model_list, test_list
   anon_roc_list = lapply(seq_along(anon_model_list), function(i) roc(as.factor(test_anon_list[[i]][,targetIndex]), anon_pred_list[[i]], auc = TRUE))
 
   # Combine the results into a single dataframe list
-  df_list = lapply(seq_along(model_list), function(i) rbind(cbind(model = "Alkuperäinen aineisto", coords(roc_list[[i]])),
-              cbind(model = "Anonyymi aineisto", coords(anon_roc_list[[i]]))))
+  # df_list = lapply(seq_along(model_list), function(i) rbind(cbind(model = "Alkuperäinen aineisto", coords(roc_list[[i]])),
+  #             cbind(model = "Anonyymi aineisto", coords(anon_roc_list[[i]]))))
 
 
   # Create a ggplot object
-  p <- ggplot(df_list[[1]], aes(1 - specificity, sensitivity, color = model)) +
-    geom_line(size = 1, linewidth = 0.1, alpha = 0.5) +
+  p <- ggplot(NULL) +
+    lapply(roc_list, functon(df) {
+      geom_line(data = df, aes(1 - specificity, sensitivity, color = "black"))
+    }) +
+    lapply(anon_roc_list, functon(df) {
+      geom_line(data = df, aes(1 - specificity, sensitivity, color = "red"))
+    }) +
+    #df_list[[1]], aes(1 - specificity, sensitivity, color = model)) +
+    #geom_line(size = 1, linewidth = 0.1, alpha = 0.5) +
     scale_x_continuous("1 - tarkkuus") +
     scale_y_continuous("Herkkyys") +
     coord_equal(expand = FALSE) +
