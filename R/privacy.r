@@ -221,39 +221,6 @@ prediction_uncertainty = function(original_data, k, anon_data = NULL, dist = euc
 }
 
 
-#' Prediction All Measures list version
-#'
-#' Wrapper function to calculate all the measures for anonymous and original data,
-#' store them into a list in the order of prediction distance,
-#' prediction ambiguity, and prediction uncertainty,
-#' and return the list.
-#'
-#' @param datalist A list containing original and anonymous data
-#' @param k Number of kth-nearest records to consider.
-#' @param dist Distance function to use (default: euc_dist).
-#' @return A list containing two sub-lists:
-#'   - original_list: Contains the measures for the original_data without a anon_data.
-#'   - anon_list: Contains the measures for the original_data with the provided anon_data.
-#'
-#' @examples
-#' \dontrun{
-#' original_data <- as.data.frame(matrix(1:6, ncol = 2))
-#' anon_data <- as.data.frame(matrix(7:12, ncol = 2))
-#' prediction_all(original_data, k = 2, anon_data)
-#' }
-#' @export
-prediction_all_list = function(datalist, k, dist = euc_dist){
-  # Calculate all the measures and store them in a list
-
-  # calculate prediction_all for all data pairs (original and anonymous) in the list
-  pred_all_list = lapply(seq_along(datalist), function(i){
-    prediction_all(datalist[[i]][[1]], k, datalist[[i]][[2]], dist)
-  })
-
-  return(pred_all_list)
-}
-
-
 #' Prediction All Measures
 #'
 #' Wrapper function to calculate all the measures for anonymous and original data,
@@ -298,7 +265,37 @@ prediction_all = function(original_data, k, anon_data, dist = euc_dist){
   return(list(original = original_list, reference = anon_list))
 }
 
+#' Prediction All Measures list version
+#'
+#' Wrapper function to calculate all the measures for anonymous and original data,
+#' store them into a list in the order of prediction distance,
+#' prediction ambiguity, and prediction uncertainty,
+#' and return the list.
+#'
+#' @param datalist A list containing original and anonymous data
+#' @param k Number of kth-nearest records to consider.
+#' @param dist Distance function to use (default: euc_dist).
+#' @return A list containing two sub-lists:
+#'   - original_list: Contains the measures for the original_data without a anon_data.
+#'   - anon_list: Contains the measures for the original_data with the provided anon_data.
+#'
+#' @examples
+#' \dontrun{
+#' original_data <- as.data.frame(matrix(1:6, ncol = 2))
+#' anon_data <- as.data.frame(matrix(7:12, ncol = 2))
+#' prediction_all(original_data, k = 2, anon_data)
+#' }
+#' @export
+prediction_all_list = function(datalist, k, dist = euc_dist){
+  # Calculate all the measures and store them in a list
 
+  # calculate prediction_all for all data pairs (original and anonymous) in the list
+  pred_all_list = lapply(seq_along(datalist), function(i){
+    prediction_all(datalist[[i]][[1]], k, datalist[[i]][[2]], dist)
+  })
+
+  return(pred_all_list)
+}
 
 #predplot-----------------------------------------------------------------
 
@@ -416,7 +413,134 @@ prediction_plot = function(original_data, k, anon_data, n = 1000, dist = euc_dis
 }
 
 
+#' Prediction Plot
+#'
+#' Plot the measures of predictive disclosure risk in an nonoverlapping sample against the measures of the same type in the anonymous data.
+#'
+#'
+#' @param datalist List of data containing the original and anonymous data
+#' @param k The amount of neighbouring points to consider (recommended range: from 5 to 10)
+#' @param n The number of points to plot (default: 1000)
+#' @param dist The distance measure to use. (Defaults to eucledian distance)
+#'
+#' @importFrom graphics plot legend lines par title
+#' @importFrom stats ecdf
+#' @import ggplot2
+#' @examples
+#' \dontrun{
+#' original_data <- as.data.frame(matrix(1:6, ncol = 2))
+#' anon_data <- as.data.frame(matrix(7:12, ncol = 2))
+#' prediction_plot(original_data, k = 2, anon_data)
+#' }
+#' @export
+prediction_plot_list = function(datalist, k, n = 1000, dist = euc_dist){
+  # plot the measures in original against measures of the same type in reference make par(mfrow = c(3,1)) before calling this function and revert it after calling this function
+  par(mfrow = c(3,1))
 
+  prediction_all_output = prediction_all_list(datalist, k, dist)
+
+  # Helper function to make vertical lines if needed
+  vert_maker = function(y){
+    # If only one unique value is present, return a sequence from 0 to 1 instead
+    table = table(y)
+    if(length(table) == 1){
+      vert = seq(0,1,length.out = length(y))
+      return(vert)
+    }
+    # Else return the original data unchanged
+    return(y)
+  }
+
+  # estimate cdf from data and calculate n equidistant points from it
+  ecdf_points <- function(data) {
+    # Create an ECDF function
+    ecdf_func <- ecdf(data)
+
+    # Generate a sequence of values for x-axis
+    x <- seq(min(data), max(data), length.out = n)
+
+    # Calculate the estimated CDF values for the x-axis values
+    y <- ecdf_func(x)
+
+    # return x and y
+    return(list(x,y))
+
+  }
+
+  quantile_distance_0_1_calc = function(og, anon, n = 1000){
+    # calculate the proportion of points in anon quantile function that have no smaller value thank in og quantile function
+    amount = 0
+
+    # Estimate quantile functions
+    og_q = quantile(og, probs = seq(0, 1, 1/n))
+    anon_q = quantile(anon, probs = seq(0, 1, 1/n))
+
+    # Calculate the proportion
+    for(i in 1:n){
+      if(og_q[i] <= anon_q[i]){
+        amount = amount + 1
+      }
+    }
+    return(amount/n)
+  }
+
+  # prediction_distance
+  og_list = lapply(seq_along(prediction_all_output), function(x) ecdf_points(prediction_all_output[[x]]$original$prediction_distance))
+  ref_list = lapply(seq_along(prediction_all_output), function(x) ecdf_points(prediction_all_output[[x]]$reference$prediction_distance))
+
+  erotus_list = lapply(seq_along(prediction_all_output), function(x) quantile_distance_0_1_calc(prediction_all_output[[x]]$original$prediction_distance, prediction_all_output[[x]]$reference$prediction_distance))
+  mean_erotus = mean(unlist(erotus_list))
+  format = formatC(signif(mean_erotus, digits=3), digits=3, format="fg", flag="#")
+
+  # plot with ggplot2
+  p_distance = ggplot(data = NULL) +
+    lapply(seq_along(prediction_all_output), function(x) geom_line(aes(x = vert_maker(og_list[[x]][[2]]), y = og_list[[x]][[1]], colour = "Alkuperäinen aineisto"), size = 1)) +
+    lapply(seq_along(prediction_all_output), function(x) geom_line(aes(x = vert_maker(ref_list[[x]][[2]]), y = ref_list[[x]][[1]], colour = "Anonyymi aineisto"), size = 1)) +
+    scale_colour_manual(name = "Aineisto", values = c("Alkuperäinen aineisto" = "black", "Anonyymi aineisto" = "red")) +
+    labs(x = "Kvantiilifunktio", y = "Ennuste-etäisyys", title = "Ennuste-etäisyys") +
+    theme_bw() +
+    theme(legend.position = "bottom", legend.title = element_blank(), legend.text = element_text(size = 15), legend.key.size = unit(1.5, "cm"), legend.key = element_rect(fill = "transparent", colour = "transparent"), plot.title = element_text(size = 20, face = "bold"), axis.title = element_text(size = 15), axis.text = element_text(size = 15))
+
+  # prediction_ambiguity
+  og_list = lapply(seq_along(prediction_all_output), function(x) ecdf_points(prediction_all_output[[x]]$original$prediction_ambiguity))
+  ref_list = lapply(seq_along(prediction_all_output), function(x) ecdf_points(prediction_all_output[[x]]$reference$prediction_ambiguity))
+
+  erotus_list = lapply(seq_along(prediction_all_output), function(x) quantile_distance_0_1_calc(prediction_all_output[[x]]$original$prediction_ambiguity, prediction_all_output[[x]]$reference$prediction_ambiguity))
+  mean_erotus = mean(unlist(erotus_list))
+  format = formatC(signif(mean_erotus, digits=3), digits=3, format="fg", flag="#")
+
+  # plot with ggplot2
+  p_ambiguity = ggplot(data = NULL) +
+    lapply(seq_along(prediction_all_output), function(x) geom_line(aes(x = vert_maker(og_list[[x]][[2]]), y = og_list[[x]][[1]], colour = "Alkuperäinen aineisto"), size = 1)) +
+    lapply(seq_along(prediction_all_output), function(x) geom_line(aes(x = vert_maker(ref_list[[x]][[2]]), y = ref_list[[x]][[1]], colour = "Anonyymi aineisto"), size = 1)) +
+    scale_colour_manual(name = "Aineisto", values = c("Alkuperäinen aineisto" = "black", "Anonyymi aineisto" = "red")) +
+    labs(x = "Kvantiilifunktio", y = "Ennuste-epävarmuus", title = "Ennuste-selvyys") +
+    theme_bw() +
+    theme(legend.position = "bottom", legend.title = element_blank(), legend.text = element_text(size = 15), legend.key.size = unit(1.5, "cm"), legend.key = element_rect(fill = "transparent", colour = "transparent"), plot.title = element_text(size = 20, face = "bold"), axis.title = element_text(size = 15), axis.text = element_text(size = 15))
+
+  # prediction_uncertainty
+  og_list = lapply(seq_along(prediction_all_output), function(x) ecdf_points(prediction_all_output[[x]]$original$prediction_uncertainty))
+  ref_list = lapply(seq_along(prediction_all_output), function(x) ecdf_points(prediction_all_output[[x]]$reference$prediction_uncertainty))
+
+  erotus_list = lapply(seq_along(prediction_all_output), function(x) quantile_distance_0_1_calc(prediction_all_output[[x]]$original$prediction_uncertainty, prediction_all_output[[x]]$reference$prediction_uncertainty))
+  mean_erotus = mean(unlist(erotus_list))
+  format = formatC(signif(mean_erotus, digits=3), digits=3, format="fg", flag="#")
+
+  # plot with ggplot2
+  p_uncertainty = ggplot(data = NULL) +
+    lapply(seq_along(prediction_all_output), function(x) geom_line(aes(x = vert_maker(og_list[[x]][[2]]), y = og_list[[x]][[1]], colour = "Alkuperäinen aineisto"), size = 1)) +
+    lapply(seq_along(prediction_all_output), function(x) geom_line(aes(x = vert_maker(ref_list[[x]][[2]]), y = ref_list[[x]][[1]], colour = "Anonyymi aineisto"), size = 1)) +
+    scale_colour_manual(name = "Aineisto", values = c("Alkuperäinen aineisto" = "black", "Anonyymi aineisto" = "red")) +
+    labs(x = "Kvantiilifunktio", y = "Ennuste-epävarmuus", title = "Ennuste-epävarmuus") +
+    theme_bw() +
+    theme(legend.position = "bottom", legend.title = element_blank(), legend.text = element_text(size = 15), legend.key.size = unit(1.5, "cm"), legend.key = element_rect(fill = "transparent", colour = "transparent"), plot.title = element_text(size = 20, face = "bold"), axis.title = element_text(size = 15), axis.text = element_text(size = 15))
+
+  print(p_distance)
+  print(p_ambiguity)
+  print(p_uncertainty)
+
+  par(mfrow = c(1,1))
+}
 
 #ri rates-------------------------------------------------------------
 
