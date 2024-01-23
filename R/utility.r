@@ -17,7 +17,7 @@
 #' testRsquared(model_list, test_data, "response_variable")
 #'}
 #' @export
-testRsquared = function(model_list, testData, responseVar){
+testRsquared_multimodel = function(model_list, testData, responseVar){
 
   # Get the model names and initialize a vector for results
   names = names(model_list)
@@ -41,7 +41,8 @@ testRsquared = function(model_list, testData, responseVar){
 #' Calculate R-squared values for multiple models on test data.
 #'
 #' @param model_list A list of models trained on anony
-#' @param responseVar The name of the response variable.
+#' @param test_datalist The test dataset list.
+#' @param responseVar_index The index of the response variable.
 #'
 #' @return A named list of R-squared values for each model.
 #'
@@ -49,22 +50,22 @@ testRsquared = function(model_list, testData, responseVar){
 #' \dontrun{
 #' # Example usage:
 #' model_list <- list(model1, model2, model3)
-#' testRsquared(model_list, test_data, "response_variable")
+#' testRsquared(model_list, test_data, responseVar_index)
 #'}
 #' @export
-testRsquared_list = function(model_list, test_datalist, responseVar){
+testRsquared_list = function(model_list, test_datalist, responseVar_index){
 
   # Function to calculate R-squared for a single model on test data
-  testRsquared = function(model, testData, responseVar){
-    test_mean = mean(testData[, responseVar])
-    model_preds = predict(model, testData[,colnames(testData) != responseVar])
-    ss_res = sum((testData[, responseVar] - model_preds)^2)
-    ss_tot = sum((testData[, responseVar] - test_mean)^2)
+  testRsquared = function(model, testData, responseVar_index){
+    test_mean = mean(testData[, responseVar_index])
+    model_preds = predict(model, testData[,-responseVar_index])
+    ss_res = sum((testData[, responseVar_index] - model_preds)^2)
+    ss_tot = sum((testData[, responseVar_index] - test_mean)^2)
     return(1 - ss_res/ss_tot)
   }
 
   # Calculate R-squared for each model on the test data
-  results = lapply(seq_along(model_list), function(i) testRsquared(model_list[[i]], test_datalist[[i]], responseVar))
+  results = lapply(seq_along(model_list), function(i) testRsquared(model_list[[i]], test_datalist[[i]], responseVar_index))
 
   # Return the mean of the results
   return(mean(unlist(results)))
@@ -167,21 +168,20 @@ roc_plot_list = function(targetIndex = 1, model_list, anon_model_list, test_list
   roc_list = lapply(seq_along(model_list), function(i) roc(as.factor(test_list[[i]][,targetIndex]), model_pred_list[[i]], auc = TRUE))
   anon_roc_list = lapply(seq_along(anon_model_list), function(i) roc(as.factor(test_anon_list[[i]][,targetIndex]), anon_pred_list[[i]], auc = TRUE))
 
-  # Combine the results into a single dataframe list
-  # df_list = lapply(seq_along(model_list), function(i) rbind(cbind(model = "Alkuperäinen aineisto", coords(roc_list[[i]])),
-  #             cbind(model = "Anonyymi aineisto", coords(anon_roc_list[[i]]))))
+  # Calculate mean AUC for both data
+  auc_og = mean(sapply(roc_list, function(x) x$auc))
+  auc_anon = mean(sapply(anon_roc_list, function(x) x$auc))
 
+  # Combine the results into a single dataframe list
+  df_list = lapply(seq_along(roc_list), function(i) rbind(cbind(model = "Alkuperäinen aineisto", coords(roc_list[[i]])),
+              cbind(model = "Anonyymi aineisto", coords(anon_roc_list[[i]]))))
 
   # Create a ggplot object
   p <- ggplot(NULL) +
-    lapply(roc_list, functon(df) {
-      geom_line(data = df, aes(1 - specificity, sensitivity, color = "black"))
+    lapply(df_list, function(df) {
+      geom_line(data = df, aes(1 - specificity, sensitivity, color = model), alpha = 0.5)
     }) +
-    lapply(anon_roc_list, functon(df) {
-      geom_line(data = df, aes(1 - specificity, sensitivity, color = "red"))
-    }) +
-    #df_list[[1]], aes(1 - specificity, sensitivity, color = model)) +
-    #geom_line(size = 1, linewidth = 0.1, alpha = 0.5) +
+    # geom_line(size = 1, linewidth = 0.1, alpha = 0.1) +
     scale_x_continuous("1 - tarkkuus") +
     scale_y_continuous("Herkkyys") +
     coord_equal(expand = FALSE) +
@@ -191,7 +191,7 @@ roc_plot_list = function(targetIndex = 1, model_list, anon_model_list, test_list
     theme(plot.title = element_text(size = 25)) +
     scale_color_manual(values = c("Alkuperäinen aineisto" = "black", "Anonyymi aineisto" = "red")) +
     theme(legend.position = c(0.9, 0.1), legend.justification = c(1, 0)) +
-    labs(color = "Mallit", subtitle = paste0(paste0("Alkuperäisen aineiston AUC = ", round(roc_list[[1]]$auc, 3)), paste0(".\nAnonyymin aineiston AUC = ", round(anon_roc_list[[1]]$auc, 3), ".")), size = 0.1) +
+    labs(color = "Mallit", subtitle = paste0(paste0("Alkuperäisen aineiston AUC = ", round(auc_og, 3)), paste0(".\nAnonyymin aineiston AUC = ", round(auc_anon, 3), ".")), size = 0.1) +
     theme(plot.subtitle = element_text(size = 15)) +
     theme(panel.border = element_rect(colour = "black", fill=NA)) +
     theme(legend.background = element_blank(),
