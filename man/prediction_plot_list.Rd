@@ -4,10 +4,10 @@
 \alias{prediction_plot_list}
 \title{Prediction Plot}
 \usage{
-prediction_plot_list(datalist, k, n = 1000, dist = euc_dist)
+prediction_plot_list(prediction_all_output, k, n = 10000, dist = euc_dist)
 }
 \arguments{
-\item{datalist}{List of data containing the original and anonymous data}
+\item{prediction_all_output}{List of the prediction_all outputs for a single model with several repetitions}
 
 \item{k}{The amount of neighbouring points to consider (recommended range: from 5 to 10)}
 
