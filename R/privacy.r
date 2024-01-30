@@ -569,7 +569,7 @@ reidentification_rate_list = function(data_list, quasiIdentifiers, n = 100,  dis
   distances = lapply(seq_along(data_list), function(x) distances(og_datalist[[x]], anon_datalist[[x]], dist))
 
   # Iterate over each model n times. For each loop, take a random permutation of 1:n, reorder the distances objects by column with it and calculate the reidentification rate each time
-  all_model_rirates = list()
+  all_model_rirates = rep(NA, length(distances))
   for(i in seq_along(distances)){
 
     # Emtpty vector for reidentification rates
@@ -577,18 +577,18 @@ reidentification_rate_list = function(data_list, quasiIdentifiers, n = 100,  dis
 
     # Calculate reidentification rate n times for each distances object, to get a more precise estimate
     for(j in 1:n){
-      permutation = sample(1:nrow(original_data))
+      permutation = sample(1:nrow(distances[[i]]))
       permutated_distances = distances[[i]][, permutation]
-      reidentification_rate = sum(apply(permutated_distances, 1, which.min) == order(permutation)) / nrow(original_data)
+      reidentification_rate = sum(apply(permutated_distances, 1, which.min) == order(permutation)) / nrow(distances[[i]])
       model_rirates[j] = reidentification_rate
     }
 
     # Add ri_rate of the model to the list
-    all_model_rirates[[names(data_list)[i]]] = model_rirates
+    all_model_rirates[i] = mean(model_rirates)
   }
 
   # return mean of all_model_rirates
-  return(mean(unlist(all_model_rirates)))
+  return(mean(all_model_rirates))
 
 }
 

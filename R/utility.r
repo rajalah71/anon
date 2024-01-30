@@ -203,3 +203,123 @@ roc_plot_list = function(targetIndex = 1, model_list, anon_model_list, test_list
   return(p)
 
 }
+
+#coefplot-------------
+
+#' Coefficient Picker List
+#'
+#' A function to calculate the mean of the means and the mean of the confidence intervals for a list of models.
+#'
+#' @param multimodel_lm_list A list of models where each element is a list containing a reference model (non-anonymous) and an anonymous model.
+#' @param interval The confidence interval level.
+#' @param intercept Logical indicating whether to include the intercept in the calculation.
+#'
+#' @return Returns a list containing information about the means and confidence intervals of coefficients for each model.
+#'
+#' @importFrom stats coef confint quantile
+#'
+coeff_picker_list = function(multimodel_lm_list, interval, intercept){
+
+  # A helper function to calculate the mean of the means and the mean of the confidence intervals for a single model
+  mean_ci_helper = function(lm_list, interval, intercept){
+
+    # Get the coefficients of each model in the list
+    coeff_list = lapply(lm_list, coef)
+
+    # Make a matrix of the coefficients
+    coeff_mat = do.call(rbind, coeff_list)
+
+    # Calculate means for each variable
+    means = apply(coeff_mat, 2, mean)
+
+    # Get the confidence intervals for each coefficient for each model
+    ci_list = lapply(lm_list, confint, level = interval)
+
+    # Make a matrix of the confidence intervals lower bounds
+    ci_mat_low = do.call(rbind, lapply(ci_list, function(x) x[,1]))
+    ci_mat_high = do.call(rbind, lapply(ci_list, function(x) x[,2]))
+
+    # Calculate the mean of the lower and upper bounds
+    ci_low_mean = apply(ci_mat_low, 2, mean)
+    ci_high_mean = apply(ci_mat_high, 2, mean)
+
+    var_names = names(means)
+
+    # Remove the intercept if it is not wanted
+    if(intercept == FALSE){
+      var_names = var_names[-1]
+      means = means[-1]
+      ci_low_mean = ci_low_mean[-1]
+      ci_high_mean = ci_high_mean[-1]
+    }
+
+    return(list("names" = var_names, "mean" = means, "ci_low" = ci_low_mean, "ci_high" = ci_high_mean))
+  }
+
+  # Calculate the means and confidence intervals for each anonymous model (located on index 2; multimodel_lm_list[[i]][[2]])
+
+  # Initialize the list
+  model_param_list = list()
+
+  # First item is a reference model, non-anonymous model
+  model_param_list[[1]] = mean_ci_helper(multimodel_lm_list[[1]][[1]], interval = interval, intercept = intercept)
+
+  # The rest are anonymous models
+  for(i in 1:length(multimodel_lm_list)){
+    model_param_list[[i+1]] = mean_ci_helper(multimodel_lm_list[[i]][[2]], interval = interval, intercept = intercept)
+  }
+
+  return(model_param_list)
+
+}
+
+
+#' Coefficient Plot List
+#'
+#' A function to create a plot of coefficients with point estimates and confidence intervals for a list of models.
+#'
+#' @param multimodel_lm_list A list of models where each element is a list containing a reference model (non-anonymous) and an anonymous model.
+#' @param model_names Optional. Names for the models. If not provided, default names ("Model1", "Model2", etc.) will be used.
+#' @param interval The confidence interval level.
+#' @param intercept Logical indicating whether to include the intercept in the plot.
+#'
+#' @importFrom dplyr bind_rows
+#'
+#'
+coeff_plot_list = function(multimodel_lm_list, model_names = NULL, interval = 0.95, intercept = FALSE){
+
+  # Check if names are provided, if not, make a list of names
+  if(is.null(model_names)){
+    model_names = paste("Model", seq_along(multimodel_lm_list))
+  }
+
+  # Check if the number of names provided is equal to the number of models
+  if(length(model_names) != 1+length(multimodel_lm_list)){
+    stop("The number of names provided is not equal to the number of models")
+  }
+
+  # Call the coeff_picker_list function to get the means and confidence intervals for each model
+  model_param_list = coeff_picker_list(multimodel_lm_list, interval = interval, intercept = intercept)
+
+  # Make a list of dataframes for each model
+  model_param_df_list = lapply(model_param_list, function(x) data.frame("Variable" = x$names, "mean" = x$mean, "ci_low" = x$ci_low, "ci_high" = x$ci_high))
+
+  # Combine the list of dataframes into a single dataframe for plotting
+  df_all = bind_rows(model_param_df_list, .id = "Mallit")
+
+  # Replace the "Model" column with the names of the models. Repeat the names of the models for each variable
+  df_all$Mallit = rep(model_names, each = nrow(model_param_df_list[[1]]))
+
+  # plot with x axis as the variables and y axis as the point estimates and confidence intervals, with the different models seperated by a color and dodge
+  plot = ggplot(df_all) +
+    geom_point(aes(x = Variable, y = mean, color = Mallit), position = position_dodge(width = -0.5)) +
+    geom_errorbar(aes(x = Variable, ymin = ci_low, ymax = ci_high, color = Mallit), position = position_dodge(width = -0.5)) +
+    theme_bw() +
+    #theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    labs(title = "Parametrien keskimääräiset 95 %:n luottamusvälit", x = NULL, y = NULL)+
+    coord_flip()
+
+
+  return(plot)
+}
+
