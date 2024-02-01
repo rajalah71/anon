@@ -32,7 +32,7 @@ meanDiffsinMean = function(dataframelist){
   sd_col_means = lapply(col_means, sd)
 
   # Return the mean of 'mean_col_means' and the mean of 'sd_col_means'
-  return(list("Mean mean" = mean(unlist(mean_col_means)), "Mean mean sd" = mean(unlist(sd_col_means))))
+  return(list("Mean mean" = signum(mean(unlist(mean_col_means)),3), "Mean mean sd" = signum(mean(unlist(sd_col_means)),3)))
 
 }
 
@@ -59,16 +59,16 @@ meanDiffsinVar = function(dataframelist){
   scaled_dataframelist = lapply(seq(length(dataframelist)), function(i)  scale(dataframelist[[i]][[2]], ref_means[[i]], ref_sds[[i]]))
 
   # Calculate colmsds for each scaled item 'anon' dataframe of the list and take the subtraction from colsds of the og data, (1 for all, since they are scaled).
-  col_sds = lapply(scaled_dataframelist, function(dataframe) colSds(dataframe)-1)
+  col_vars = lapply(scaled_dataframelist, function(dataframe) colVars(dataframe)-1)
 
   # Calculate the mean of each 'colmsds' item
-  mean_col_sds = lapply(col_sds, mean)
+  mean_col_vars = lapply(col_vars, mean)
 
   # Calculate the sd of each 'colsds' item
-  sd_col_sds = lapply(col_sds, sd)
+  sd_col_vars = lapply(col_vars, sd)
 
-  # Return the mean of 'mean_col_means' and the mean of 'sd_col_means'
-  return(list("Mean sd" = mean(unlist(mean_col_sds)), "Mean sd sd" = mean(unlist(sd_col_sds))))
+  # Return the mean of 'mean_col_means' and the mean of 'var_col_means'
+  return(list("Mean var" = signum(mean(unlist(mean_col_vars)),3), "Mean var sd" = signum(mean(unlist(sd_col_vars)),3)))
 
 
 }
@@ -120,7 +120,7 @@ meanDiffsinCor = function(dataframelist){
 
 
   # Return the mean of 'mean_col_means' and the mean of 'sd_col_means'
-  return(list("Mean cor" = mean(unlist(col_means)), "Mean cor sd" = mean(unlist(col_sds))))
+  return(list("Mean cor" = signum(mean(unlist(col_means)),3), "Mean cor sd" = signum(mean(unlist(col_sds)),3)))
 }
 
 #' Calculate Median Differences in Means, Variances, and Correlation Matrices

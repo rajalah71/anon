@@ -728,3 +728,27 @@ colSds <- function(df, na.rm = FALSE) {
   apply(df, 2, sd, na.rm = na.rm)
 }
 
+#sig_num-----------------------
+
+#' Significant Digits
+#' @param x A numeric vector.
+#' @param n The number of significant digits to round to.
+#' @return A numeric vector rounded to n significant digits.
+#'
+#' @examples
+#' \dontrun{
+#' a = 3.141
+#' sig_num(a, 2)
+#' }
+#' @export
+signum = function(x,n){
+  # Stop if n is not larger of equal to 1
+  if(n < 1){
+    stop("n must be larger or equal to 1")
+  }
+
+ num = formatC(signif(x, digits=n), digits=n, format="fg", flag="#")
+ # remove point if n=1
+ ifelse(n==1, gsub("\\.", "", num), num)
+}
+

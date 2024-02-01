@@ -68,7 +68,7 @@ testRsquared_list = function(model_list, test_datalist, responseVar_index){
   results = lapply(seq_along(model_list), function(i) testRsquared(model_list[[i]], test_datalist[[i]], responseVar_index))
 
   # Return the mean of the results
-  return(mean(unlist(results)))
+  return(signum(mean(unlist(results)),3))
 }
 
 #rocplots-----------------------------------------------------
@@ -191,7 +191,7 @@ roc_plot_list = function(targetIndex = 1, model_list, anon_model_list, test_list
     theme(plot.title = element_text(size = 25)) +
     scale_color_manual(values = c("Alkuperäinen aineisto" = "black", "Anonyymi aineisto" = "red")) +
     theme(legend.position = c(0.9, 0.1), legend.justification = c(1, 0)) +
-    labs(color = "Mallit", subtitle = paste0(paste0("Alkuperäisen aineiston AUC = ", round(auc_og, 3)), paste0(".\nAnonyymin aineiston AUC = ", round(auc_anon, 3), ".")), size = 0.1) +
+    labs(color = "Mallit", subtitle = paste0(paste0("Alkuperäisen aineiston AUC = ", signum(auc_og, 3)), paste0(".\nAnonyymin aineiston AUC = ", signum(auc_anon, 3), ".")), size = 0.1) +
     theme(plot.subtitle = element_text(size = 15)) +
     theme(panel.border = element_rect(colour = "black", fill=NA)) +
     theme(legend.background = element_blank(),
@@ -284,6 +284,7 @@ coeff_picker_list = function(multimodel_lm_list, interval, intercept){
 #' @param intercept Logical indicating whether to include the intercept in the plot.
 #'
 #' @importFrom dplyr bind_rows
+#' @importFrom ggplot2 ggplot geom_point geom_errorbar coord_flip theme element_text labs theme
 #'
 #'
 coeff_plot_list = function(multimodel_lm_list, model_names = NULL, interval = 0.95, intercept = FALSE){
@@ -291,11 +292,6 @@ coeff_plot_list = function(multimodel_lm_list, model_names = NULL, interval = 0.
   # Check if names are provided, if not, make a list of names
   if(is.null(model_names)){
     model_names = paste("Model", seq_along(multimodel_lm_list))
-  }
-
-  # Check if the number of names provided is equal to the number of models
-  if(length(model_names) != 1+length(multimodel_lm_list)){
-    stop("The number of names provided is not equal to the number of models")
   }
 
   # Call the coeff_picker_list function to get the means and confidence intervals for each model
@@ -309,6 +305,8 @@ coeff_plot_list = function(multimodel_lm_list, model_names = NULL, interval = 0.
 
   # Replace the "Model" column with the names of the models. Repeat the names of the models for each variable
   df_all$Mallit = rep(model_names, each = nrow(model_param_df_list[[1]]))
+  df_all$Mallit = factor(df_all$Mallit, levels = model_names)
+
 
   # plot with x axis as the variables and y axis as the point estimates and confidence intervals, with the different models seperated by a color and dodge
   plot = ggplot(df_all) +

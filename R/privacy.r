@@ -390,11 +390,11 @@ prediction_plot = function(original_data, k, anon_data, n = 1000, dist = euc_dis
   erotus = quantile_distance_0_1_calc(prediction_all_output$original$prediction_ambiguity, prediction_all_output$reference$prediction_ambiguity)
   format = formatC(signif(erotus, digits=3), digits=3, format="fg", flag="#")
 
-  plot(vert_maker(og[[2]]), og[[1]], type = "l",  xlab = "Kvantiilifunktio", cex.lab = 1.5, ylab = "Ennuste-epävarmuus",   ylim = c(0, max(prediction_all_output$original$prediction_ambiguity, prediction_all_output$reference$prediction_ambiguity)))
+  plot(vert_maker(og[[2]]), og[[1]], type = "l",  xlab = "Kvantiilifunktio", cex.lab = 1.5, ylab = "Ennuste-epäselvyys",   ylim = c(0, max(prediction_all_output$original$prediction_ambiguity, prediction_all_output$reference$prediction_ambiguity)))
   lines(vert_maker(ref[[2]]), ref[[1]], type = "l", col = "red")
   legend("topleft", legend = c("Alkuperäinen aineisto", "Anonyymi aineisto"), col = c("black", "red"), lty = 1, cex = 1.3, bg = "transparent")
   legend("bottomright", legend = paste("Riittävä suoja: ", format),  bty = "n", cex = 1.3, bg = "transparent")
-  title("Ennuste-epävarmuus", cex.main = 1.4)
+  title("Ennuste-epäselvyys", cex.main = 1.4)
 
   og = ecdf_points(prediction_all_output$original$prediction_uncertainty)
   ref = ecdf_points(prediction_all_output$reference$prediction_uncertainty)
@@ -426,6 +426,7 @@ prediction_plot = function(original_data, k, anon_data, n = 1000, dist = euc_dis
 #' @importFrom graphics plot legend lines par title
 #' @importFrom stats ecdf
 #' @import ggplot2
+#' @importFrom gridExtra grid.arrange
 #' @examples
 #' \dontrun{
 #' original_data <- as.data.frame(matrix(1:6, ncol = 2))
@@ -434,8 +435,6 @@ prediction_plot = function(original_data, k, anon_data, n = 1000, dist = euc_dis
 #' }
 #' @export
 prediction_plot_list = function(prediction_all_output, k, n = 10000, dist = euc_dist){
-  # plot the measures in original against measures of the same type in reference make par(mfrow = c(3,1)) before calling this function and revert it after calling this function
-  par(mfrow = c(3,1))
 
   # Helper function to make vertical lines if needed
   vert_maker = function(y){
@@ -497,13 +496,13 @@ prediction_plot_list = function(prediction_all_output, k, n = 10000, dist = euc_
     scale_colour_manual(name = "Aineisto", values = c("Alkuperäinen aineisto" = "black", "Anonyymi aineisto" = "red")) +
     labs(x = "Kvantiilifunktio", y = "Ennuste-etäisyys", title = "Ennuste-etäisyys", subtitle = paste0("Riittävä suoja: ", format)) +
     theme_bw() +
-    theme(legend.position = "bottom", legend.title = element_blank(), legend.text = element_text(size = 15), legend.key.size = unit(1.5, "cm"), legend.key = element_rect(fill = "transparent", colour = "transparent"), plot.title = element_text(size = 20, face = "bold"), axis.title = element_text(size = 15), axis.text = element_text(size = 15))
+    theme(legend.position = "bottom", legend.title = element_blank(), legend.text = element_text(size = 17), legend.key.size = unit(1.5, "cm"), legend.key = element_rect(fill = "transparent", colour = "transparent"), plot.title = element_text(size = 20, face = "bold"), axis.title = element_text(size = 17), axis.text = element_text(size = 17), plot.subtitle = element_text(size = 18))
 
-  print(p_distance)
+  #print(p_distance)
 
   # prediction_ambiguity
-  og_list = lapply(seq_along(prediction_all_output), function(x) ecdf_points(prediction_all_output[[x]]$original$prediction_ambiguity))
-  ref_list = lapply(seq_along(prediction_all_output), function(x) ecdf_points(prediction_all_output[[x]]$reference$prediction_ambiguity))
+  og_listt2 = lapply(seq_along(prediction_all_output), function(x) ecdf_points(prediction_all_output[[x]]$original$prediction_ambiguity))
+  ref_list2 = lapply(seq_along(prediction_all_output), function(x) ecdf_points(prediction_all_output[[x]]$reference$prediction_ambiguity))
 
   erotus_list = lapply(seq_along(prediction_all_output), function(x) quantile_distance_0_1_calc(prediction_all_output[[x]]$original$prediction_ambiguity, prediction_all_output[[x]]$reference$prediction_ambiguity))
   mean_erotus = mean(unlist(erotus_list))
@@ -511,18 +510,19 @@ prediction_plot_list = function(prediction_all_output, k, n = 10000, dist = euc_
 
   # plot with ggplot2
   p_ambiguity = ggplot(data = NULL) +
-    lapply(seq_along(prediction_all_output), function(x) geom_line(aes(x = vert_maker(og_list[[x]][[2]]), y = og_list[[x]][[1]], colour = "Alkuperäinen aineisto"), size = 1, alpha = 0.5)) +
-    lapply(seq_along(prediction_all_output), function(x) geom_line(aes(x = vert_maker(ref_list[[x]][[2]]), y = ref_list[[x]][[1]], colour = "Anonyymi aineisto"), size = 1, alpha = 0.5)) +
+    lapply(seq_along(prediction_all_output), function(x) geom_line(aes(x = vert_maker(og_listt2[[x]][[2]]), y = og_listt2[[x]][[1]], colour = "Alkuperäinen aineisto"), size = 1, alpha = 0.5)) +
+    lapply(seq_along(prediction_all_output), function(x) geom_line(aes(x = vert_maker(ref_list2[[x]][[2]]), y = ref_list2[[x]][[1]], colour = "Anonyymi aineisto"), size = 1, alpha = 0.5)) +
     scale_colour_manual(name = "Aineisto", values = c("Alkuperäinen aineisto" = "black", "Anonyymi aineisto" = "red")) +
-    labs(x = "Kvantiilifunktio", y = "Ennuste-epävarmuus", title = "Ennuste-epäselvyys", subtitle = paste0("Riittävä suoja: ", format)) +
+    labs(x = "Kvantiilifunktio", y = "Ennuste-epäselvyys", title = "Ennuste-epäselvyys", subtitle = paste0("Riittävä suoja: ", format)) +
     theme_bw() +
-    theme(legend.position = "bottom", legend.title = element_blank(), legend.text = element_text(size = 15), legend.key.size = unit(1.5, "cm"), legend.key = element_rect(fill = "transparent", colour = "transparent"), plot.title = element_text(size = 20, face = "bold"), axis.title = element_text(size = 15), axis.text = element_text(size = 15))
+    theme(legend.position = "bottom", legend.title = element_blank(), legend.text = element_text(size = 17), legend.key.size = unit(1.5, "cm"), legend.key = element_rect(fill = "transparent", colour = "transparent"), plot.title = element_text(size = 20, face = "bold"), axis.title = element_text(size = 17), axis.text = element_text(size = 17), plot.subtitle = element_text(size = 18))
 
-  print(p_ambiguity)
+  #print(p_ambiguity)
+
 
   # prediction_uncertainty
-  og_list = lapply(seq_along(prediction_all_output), function(x) ecdf_points(prediction_all_output[[x]]$original$prediction_uncertainty))
-  ref_list = lapply(seq_along(prediction_all_output), function(x) ecdf_points(prediction_all_output[[x]]$reference$prediction_uncertainty))
+  og_listt3 = lapply(seq_along(prediction_all_output), function(x) ecdf_points(prediction_all_output[[x]]$original$prediction_uncertainty))
+  ref_list23 = lapply(seq_along(prediction_all_output), function(x) ecdf_points(prediction_all_output[[x]]$reference$prediction_uncertainty))
 
   erotus_list = lapply(seq_along(prediction_all_output), function(x) quantile_distance_0_1_calc(prediction_all_output[[x]]$original$prediction_uncertainty, prediction_all_output[[x]]$reference$prediction_uncertainty))
   mean_erotus = mean(unlist(erotus_list))
@@ -530,16 +530,18 @@ prediction_plot_list = function(prediction_all_output, k, n = 10000, dist = euc_
 
   # plot with ggplot2
   p_uncertainty = ggplot(data = NULL) +
-    lapply(seq_along(prediction_all_output), function(x) geom_line(aes(x = vert_maker(og_list[[x]][[2]]), y = og_list[[x]][[1]], colour = "Alkuperäinen aineisto"), size = 1, alpha = 0.5)) +
-    lapply(seq_along(prediction_all_output), function(x) geom_line(aes(x = vert_maker(ref_list[[x]][[2]]), y = ref_list[[x]][[1]], colour = "Anonyymi aineisto"), size = 1, alpha = 0.5)) +
+    lapply(seq_along(prediction_all_output), function(x) geom_line(aes(x = vert_maker(og_listt3[[x]][[2]]), y = og_listt3[[x]][[1]], colour = "Alkuperäinen aineisto"), size = 1, alpha = 0.5)) +
+    lapply(seq_along(prediction_all_output), function(x) geom_line(aes(x = vert_maker(ref_list23[[x]][[2]]), y = ref_list23[[x]][[1]], colour = "Anonyymi aineisto"), size = 1, alpha = 0.5)) +
     scale_colour_manual(name = "Aineisto", values = c("Alkuperäinen aineisto" = "black", "Anonyymi aineisto" = "red")) +
     labs(x = "Kvantiilifunktio", y = "Ennuste-epävarmuus", title = "Ennuste-epävarmuus", subtitle = paste0("Riittävä suoja: ", format)) +
     theme_bw() +
-    theme(legend.position = "bottom", legend.title = element_blank(), legend.text = element_text(size = 15), legend.key.size = unit(1.5, "cm"), legend.key = element_rect(fill = "transparent", colour = "transparent"), plot.title = element_text(size = 20, face = "bold"), axis.title = element_text(size = 15), axis.text = element_text(size = 15))
+    theme(legend.position = "bottom", legend.title = element_blank(), legend.text = element_text(size = 17), legend.key.size = unit(1.5, "cm"), legend.key = element_rect(fill = "transparent", colour = "transparent"), plot.title = element_text(size = 20, face = "bold"), axis.title = element_text(size = 17), axis.text = element_text(size = 17), plot.subtitle = element_text(size = 18))
 
-  print(p_uncertainty)
 
-  par(mfrow = c(1,1))
+
+  #print(p_uncertainty)
+
+  grid.arrange(p_distance, p_ambiguity, p_uncertainty, nrow = 3)
 }
 
 #ri rates-------------------------------------------------------------
