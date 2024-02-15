@@ -25,39 +25,52 @@ A package containing data anonymization tools for R.
 
 ## 2. Usage
 
-The package contains 4 functions to anonymize your data: $k$-anonymity, $l$-diversity, RSA encryption and spectral anonymization. 
+The package contains 4 functions to anonymize your data: $k$-anonymity, $l$-diversity, RSA encryption and spectral anonymization with 2 helper functions provided. 
 
 The package also contains functions to measure the success of the anonymization on three levels: privacy, utility and similarity. 
 
 ### 2.1 _k_-anonymity
 
-```{r}
+```{r, results='hide'}
 data("iris")
 
-kAnon(iris, k=5, quasiIdentifiers = c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width", "Species"))[1:10, ]
+kanon = kAnon(iris, k=5, quasiIdentifiers = c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width", "Species"))[1:10, ]
 ```
+
+```{r}
+kanon
+```
+
 
 
 
 
 - This uses all columns as quasi identifiers by default and operates on them with mean on numeric columns and with mode on categorical ones.
 
-- You can define your own generalization functions and on what columns the function will operate on. Functions must be on a named list which names match the names of the quasi identifier columns. The columns will be worked on the order you name them, or by cardinality if left unnamed. 
+- You can define your own generalization functions and on what columns the function will operate on. These functions must be on a list with item names matching the names of the quasi-identifier columns. The columns will be worked on the order you name them, or by cardinality on descending order if left unnamed. 
 
 ### 2.2 _l_-diversity
 
-```{r}
-lDiversity(iris, sensitiveAttributes = "Species", quasiIdentifiers = c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"), l=2)[1:10, ] 
+```{r, results='hide'}
+ldiv = lDiversity(iris, sensitiveAttributes = "Species", quasiIdentifiers = c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"), l=2)[1:10, ] 
+```
 
+```{r}
+ldiv
 ```
 
 
-- Works similiarly to kAnon, just need to specify the sensitive attributes. Won't probably work with more than one of them.
+
+- Works similiarly to kAnon, you just need to specify the sensitive attribute(s). If your data has multiple sensitive attributes with too high cardinality, one can use the 'sensitive_generalizer' function to reduce the cardinality of those variables. This, however, will negatively impact the utility of the data.
 
 ### 2.3 RSA
 
+```{r, results='hide'}
+rsa = encrypt(iris)[1:10, ]
+```
+
 ```{r}
-encrypt(iris)[1:10, ]
+rsa
 ```
 
 - Encrypts the data using a new RSA key = 2048 bits by default. Do not distribute the public key.
@@ -66,28 +79,39 @@ encrypt(iris)[1:10, ]
 
 ```{}
 # General usage:
-spectral(iris, your_function, on_matrices = "U")
+spectral(iris, your_anon_function, on_matrices = "U")
 ```
 
-- Anonymizes data on the spectral basis provided by SVD, $M = UDV'$. Supports any anoymization function $f: R^{a \times b} \to R^{a \times b}$.
+- Anonymizes data on the spectral basis provided by SVD, $M = UDV'$. Supports any anonymization function $f: R^{a \times b} \to R^{a \times b}$. In this package, helper functions 'cell_swap' and 'sensitive_noise' are provided for permutations and additive noise respectively.
 
-```{r}
+```{r, results='hide'}
 # Example usage, spectral permutation:
 # Performs column permutations on each column the matrix U
-data_anon = spectral(iris, cell_swap, on_matrices = "U")
-data_anon[1:10, ]
+noise = spectral(iris, cell_swap, on_matrices = "U")[1:10, ]
+```
 
+
+```{r}
+noise
+```
+
+
+```{r, results='hide'}
 # Example usage spectral noise:
 # Adds random noise on the matrix columns of UD
-spectral(iris, sensitive_noise, on_matrices = "UD")[1:10, ]
-
+swap = spectral(iris, sensitive_noise, on_matrices = "UD")[1:10, ]
 ```
+
+```{r}
+swap
+```
+
 
 ## 3. Privacy
 
 ```{r}
 # Re-identification rate
-ri_rates = reidentification_rate(list("original" = iris, "anon" = data_anon), quasiIdentifiers = c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width", "Species"))
+ri_rates = reidentification_rate(list("original" = iris, "anon" = swap), quasiIdentifiers = c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width", "Species"))
 
 lapply(ri_rates, median)
 ```

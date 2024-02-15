@@ -2,7 +2,7 @@
 % Please edit documentation in R/privacy.r
 \name{prediction_plot_list}
 \alias{prediction_plot_list}
-\title{Prediction Plot}
+\title{Prediction Plot list version}
 \usage{
 prediction_plot_list(prediction_all_output, k, n = 10000, dist = euc_dist)
 }

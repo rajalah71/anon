@@ -413,7 +413,7 @@ prediction_plot = function(original_data, k, anon_data, n = 1000, dist = euc_dis
 }
 
 
-#' Prediction Plot
+#' Prediction Plot list version
 #'
 #' Plot the measures of predictive disclosure risk in an nonoverlapping sample against the measures of the same type in the anonymous data.
 #'
