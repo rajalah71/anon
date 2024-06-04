@@ -1,0 +1,139 @@
+---
+title: "README"
+output: github_document
+---
+
+# anon
+
+A library containing data anonymization tools for R.
+
+## 1. Installation
+
+```{}
+# 1. Install "devtools" package on R
+    install.packages("devtools")
+
+# 2. Install the "anon" package on R
+    devtools::install_github("rajalah71/anon") # or /anon@paketti
+```
+
+```{r}
+# 3. Load the "anon" library
+    library(anon)
+```
+
+## 2. Usage
+
+The package contains 4 functions to anonymize your data: $k$-anonymity, $l$-diversity, RSA encryption and spectral anonymization with 2 helper functions provided. 
+
+The package also contains functions to measure the success of the anonymization on three levels: privacy, utility and similarity. 
+
+### 2.1 _k_-anonymity
+
+```{r, results='hide', message=FALSE, warning=FALSE}
+data("iris")
+
+kanon = kAnon(iris, k=5, quasiIdentifiers = c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width", "Species"))[1:10, ]
+```
+
+```{r}
+kanon
+```
+
+- This uses all columns as quasi identifiers by default and operates on them with mean on numeric columns and with mode on categorical ones.
+
+- You can define your own generalization functions and on what columns the function will operate on. These functions must be on a list with item names matching the names of the quasi-identifier columns. The columns will be worked on the order you name them, or by cardinality on descending order if left unnamed. 
+
+### 2.2 _l_-diversity
+
+```{r, results='hide', message=FALSE, warning=FALSE}
+ldiv = lDiversity(iris, sensitiveAttributes = "Species", quasiIdentifiers = c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"), l=2)[1:10, ] 
+```
+
+```{r}
+ldiv
+```
+
+- Works similiarly to kAnon, you just need to specify the sensitive attribute(s). If your data has multiple sensitive attributes with too high cardinality, one can use the 'sensitive_generalizer' function to reduce the cardinality of those variables. This, however, will negatively impact the utility of the data.
+
+### 2.3 RSA
+
+```{r, results='hide', message=FALSE, warning=FALSE}
+rsa = encrypt(iris)[1:10, ]
+```
+
+```{r}
+rsa
+```
+
+- Encrypts the data using a new RSA key = 2048 bits by default. Do not distribute the public key.
+
+### 2.4 Spectral anonymization
+
+```{}
+# General usage:
+spectral(iris, your_anon_function, on_matrices = "U")
+```
+
+- Anonymizes data on the spectral basis provided by SVD, $M = UDV'$. Supports any anonymization function $f: R^{a \times b} \to R^{a \times b}$. In this package, helper functions 'cell_swap' and 'sensitive_noise' are provided for permutations and additive noise respectively.
+
+```{r, results='hide', message=FALSE, warning=FALSE}
+# Example usage, spectral permutation:
+# Performs column permutations on each column of the matrix U
+swap = spectral(iris, cell_swap, on_matrices = "U")
+```
+
+```{r}
+swap[1:10, ]
+```
+
+```{r, results='hide', message=FALSE, warning=FALSE}
+# Example usage spectral noise:
+# Adds random noise on the columns of the matrix UD
+noise = spectral(iris, sensitive_noise, on_matrices = "UD")
+```
+
+```{r}
+noise[1:10, ]
+```
+
+## 3. Privacy
+
+```{r}
+# Re-identification rate
+ri_rates = reidentification_rate(list("original" = iris, "anon" = swap), quasiIdentifiers = c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width", "Species"))
+
+lapply(ri_rates, median)
+```
+
+- The re-identification rate has dropped significantly after the anonymization.
+
+```{r}
+prediction_plot(iris, k=5, swap)
+```
+
+## 4. Utility and similarity
+
+- Also check the utility (performance on a model of interest, for example) and similarity (of means and variances, for example) of the anonymized data against those of the original data.
+
+```{r, warning=FALSE}
+# Utility
+trainIndices = sample(c(TRUE,FALSE), nrow(iris), replace = TRUE, prob = c(0.7, 0.3))
+train = iris[trainIndices, ]
+test = iris[!trainIndices, ]
+anon_train = spectral(train, sensitive_noise, on_matrices = "UD")
+
+lm = lm(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width + Species, data = train)
+lm_anon = lm(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width + Species, data = anon_train)
+testRsquared_multimodel(list("Original" = lm, "Anon" = lm_anon), test, response = "Sepal.Length")
+```
+
+- The coefficient of determination on test data has dropped after the anonymization, meaning that the utility of the data has dropped.
+
+
+```{r}
+# Similarity
+mediansAll(list("Original" = iris, "Anon" = swap))
+```
+
+- The means, variances and correlations have changed after the anonymization.

@@ -1,0 +1,25 @@
+Package: anon
+Type: Package
+Title: Anonymization Tools for Micro Data
+Version: 0.1.0
+Author: Johannes Rajala
+Maintainer: The package maintainer <rajalah71@gmail.com>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    data.table (>= 1.14.8),
+    dplyr (>= 1.1.2),
+    ggplot2 (>= 3.4.2),
+    gridExtra (>= 2.3),
+    onehot (>= 0.1.1),
+    openssl (>= 2.0.6),
+    pROC (>= 1.18.4),
+    Rmpfr (>= 0.9.2),
+    stats (>= 4.3.1)
+RoxygenNote: 7.2.3
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
